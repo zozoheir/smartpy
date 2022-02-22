@@ -1,0 +1,12 @@
+pandas
+snscrape==0.3.4
+boto3
+s3fs
+s3transfer
+botocore
+awswrangler
+edlib==1.3.9
+nltk
+sklearn
+psutil
+matplotlib

@@ -1,0 +1,27 @@
+name: RUMORZ-base
+
+dependencies:
+  - python=3.8.2
+  - boto
+  - boto3
+  - botocore
+  - s3fs
+  - pandas
+  - pip
+  - numpy
+  - matplotlib
+  - mysql-connector-python
+  - mysqlclient
+  - sqlalchemy
+  - psutil
+  - scikit-learn
+  - pip:
+    - awswrangler
+    - snscrape
+    - twitter
+    - edlib
+    - nltk
+    - python-binance
+    - transformers==4.16.2
+    - tokenizers==0.11.5
+    - pycoingecko
