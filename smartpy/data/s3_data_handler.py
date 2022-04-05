@@ -19,26 +19,25 @@ class S3DataHandler:
         self.bucket = bucket
         self.data_util = DataUtil(profile_name)
 
-    def getData(self, key, method='aws'):
+    def getData(self, key, method='aws', **kwargs):
 
         # aws method has highest priority, no matter if local_dir provided or not
         if method == 'aws' or self.local_dir is None:
             s3_uri = f"s3://{self.bucket}/{key}"
-            data_to_return = self.data_util.readS3ParquetDataset(s3_uri)
+            data_to_return = self.data_util.readS3ParquetDataset(s3_uri, **kwargs)
 
 
         if self.local_dir and method != 'aws':
             expected_local_file_path = os_util.joinPaths([self.local_dir, self.bucket, key])
             if os_util.fileExists(expected_local_file_path):
                 print(f'Returning local file : {expected_local_file_path}')
-                data_to_return = self.data_util.readS3ParquetDataset(expected_local_file_path)
+                data_to_return = self.data_util.readS3ParquetDataset(expected_local_file_path, **kwargs)
             else:
                 print(f'File not present locally')
                 self.downloadData(bucket=self.bucket, key=key, save_to_file_path=expected_local_file_path)
-                data_to_return = self.data_util.readS3ParquetDataset(expected_local_file_path)
+                data_to_return = self.data_util.readS3ParquetDataset(expected_local_file_path, **kwargs)
         elif self.local_dir is None and method != 'aws':
             raise Exception('No local directory provided. You need a local file to use the pandas/pyarrow/dask methods')
-
 
         return data_to_return
 

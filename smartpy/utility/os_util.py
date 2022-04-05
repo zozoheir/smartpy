@@ -135,8 +135,8 @@ def getParentDir(path):
     return os.path.dirname(path)
 
 
-def listDir(path):
-    return [joinPaths([path, i]) for i in os.listdir(path)]
+def listDir(path, format=''):
+    return [joinPaths([path, i]) for i in os.listdir(path) if format in i]
 
 
 def walkDir(paths: Union[str, list], extension="", ignore=[]) -> list:
@@ -219,7 +219,6 @@ def loadPickle(file_path):
 def savePickle(object, file_path):
     with open(file_path, 'wb') as handle:
         pickle.dump(object, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
 
 
 def getComputerStats():

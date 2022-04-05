@@ -21,7 +21,7 @@ class BinanceClient:
         self.client = Client(api_key, api_secret)
 
     def getSymbols(self):
-        return [i['symbol'] for i in self.client.get_all_tickers()]
+        return [i['coin'] for i in self.client.get_all_tickers()]
 
     def getStepSize(self, symbol):
         symbol_info = self.client.get_symbol_info(symbol)
@@ -35,8 +35,8 @@ class BinanceClient:
         return tick_size
 
 
-    # def getOB(self, symbol) -> {Decimal: float}:
-    #     res = self.telegram_client.get_order_book(symbol=symbol)
+    # def getOB(self, coin) -> {Decimal: float}:
+    #     res = self.telegram_client.get_order_book(coin=coin)
     #     price_size_bids = res['bids']
     #     price_size_asks = res['asks']
     #     ob_object.bids = {Decimal(price): size for (price, size) in price_size_bids}
@@ -45,7 +45,7 @@ class BinanceClient:
 
     def getRecentTrades(self, symbol):
         trades_cols_to_keep = ['T', 'p', 'q', 'm']
-        agg_trades = self.binance_client.aggregate_trade_iter(symbol=symbol, start_str='30 minutes')
+        agg_trades = self.binance_client.aggregate_trade_iter(symbol=symbol, start_str='30 minutes_add')
         trades_data = pd.DataFrame([i for i in agg_trades])[trades_cols_to_keep]
         trades_data = trades_data.rename({'p': 'price',
                                           'q': 'qty',

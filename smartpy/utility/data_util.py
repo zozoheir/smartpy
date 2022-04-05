@@ -47,7 +47,7 @@ class DataUtil:
         https://aws-data-wrangler.readthedocs.io/en/2.4.0-docs/stubs/awswrangler.s3.read_parquet.html
         """
         bucket, key = self.s3.getBucketKeyFromUri(s3_path)
-        if self.s3.checkIfObjectExists(bucket,key):
+        if self.s3.isFile(bucket, key):
             wr.s3.to_parquet(df=df, path=s3_path, boto3_session=self.boto3_session, dataset=True, mode='append', **kwargs)
         else:
             wr.s3.to_parquet(df=df, path=s3_path, boto3_session=self.boto3_session, dataset=True, **kwargs)

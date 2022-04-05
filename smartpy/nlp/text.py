@@ -1,3 +1,4 @@
+import re
 from random import sample
 
 import edlib
@@ -73,3 +74,7 @@ def getCosineSimilarity(clean_text1, clean_text2):
 def getFirstLetterByWord(text):
     words = text.split()
     return [word[0] for word in words]
+
+
+def hasNumbers(inputString):
+    return bool(re.search(r'\d', inputString))

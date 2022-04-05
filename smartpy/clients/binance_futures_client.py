@@ -36,10 +36,10 @@ class BinanceFuturesClient:
     def getSymbols(self):
         self.testConnection()
 
-        return [i['symbol'] for i in self.client.get_all_tickers()]
+        return [i['coin'] for i in self.client.get_all_tickers()]
 
-    # def getOB(self, symbol):
-    #     res = self.telegram_client.futures_order_book(symbol=symbol)
+    # def getOB(self, coin):
+    #     res = self.telegram_client.futures_order_book(coin=coin)
     #     price_size_bids = res['bids']
     #     price_size_asks = res['asks']
     #     ob_object.bids = {Decimal(price): size for (price, size) in price_size_bids}
@@ -49,7 +49,7 @@ class BinanceFuturesClient:
     def getStepSize(self, symbol):
         self.testConnection()
         exchange_info = self.client.futures_exchange_info()
-        symbol_info = list(filter(lambda x: (x['symbol'] == symbol), exchange_info['cryptofeed_symbols']))
+        symbol_info = list(filter(lambda x: (x['coin'] == symbol), exchange_info['cryptofeed_symbols']))
         step_size = list(filter(lambda x: (x['filterType'] == 'LOT_SIZE'), symbol_info[0]['filters']))[0]['stepSize']
 
         return step_size
@@ -57,7 +57,7 @@ class BinanceFuturesClient:
     def getTickSize(self, symbol):
         self.testConnection()
         exchange_info = self.client.futures_exchange_info()
-        symbol_info = list(filter(lambda x: (x['symbol'] == symbol), exchange_info['cryptofeed_symbols']))
+        symbol_info = list(filter(lambda x: (x['coin'] == symbol), exchange_info['cryptofeed_symbols']))
         tick_size = list(filter(lambda x: (x['filterType'] == 'PRICE_FILTER'), symbol_info[0]['filters']))[0]['tickSize']
 
         return tick_size
@@ -65,7 +65,7 @@ class BinanceFuturesClient:
     def getMinQty(self, symbol):
         self.testConnection()
         exchange_info = self.client.futures_exchange_info()
-        symbol_info = list(filter(lambda x: (x['symbol'] == symbol), exchange_info['cryptofeed_symbols']))
+        symbol_info = list(filter(lambda x: (x['coin'] == symbol), exchange_info['cryptofeed_symbols']))
         min_qty = list(filter(lambda x: (x['filterType'] == 'LOT_SIZE'), symbol_info[0]['filters']))[0]['minQty']
 
         return min_qty
@@ -73,14 +73,14 @@ class BinanceFuturesClient:
     def getMinNotional(self, symbol):
         self.testConnection()
         exchange_info = self.client.futures_exchange_info()
-        symbol_info = list(filter(lambda x: (x['symbol'] == symbol), exchange_info['cryptofeed_symbols']))
+        symbol_info = list(filter(lambda x: (x['coin'] == symbol), exchange_info['cryptofeed_symbols']))
         min_notional = list(filter(lambda x: (x['filterType'] == 'MIN_NOTIONAL'), symbol_info[0]['filters']))[0]['notional']
 
         return min_notional
 
     def getRecentTrades(self, symbol):
         trades_cols_to_keep = ['T', 'p', 'q', 'm']
-        agg_trades = self.client.futures_aggregate_trades(symbol=symbol, start_str='30 minutes ago UTC')
+        agg_trades = self.client.futures_aggregate_trades(symbol=symbol, start_str='30 minutes_add ago UTC')
         trades_data = pd.DataFrame([i for i in agg_trades])[trades_cols_to_keep]
         trades_data = trades_data.rename({'p': 'price',
                                           'q': 'qty',
@@ -98,7 +98,7 @@ class BinanceFuturesClient:
 
     def getHistoricalOHLC(self, symbol, interval, start_time, end_time, volume_data, ln):
         """
-        Returns OHLC data with timestamps from timezone of requester (EST for Montreal etc...)
+        Returns OHLC data with timestamps from wanted_timezone of requester (EST for Montreal etc...)
         """
         self.testConnection()
         historical_data_list = self.client.futures_klines(symbol=symbol, interval=interval, start_time=str(start_time),
@@ -203,7 +203,7 @@ class BinanceFuturesClient:
         self.testConnection()
         executed_order = {'ORDER_ID': None, 'QUANTITY': None, 'PRICE': None}
 
-        # Binance doesn't support notional-based trades for futures. Need to convert notional to quantity.
+        # Binance doesn't support notional-based api_response_trades_list for futures. Need to convert notional to quantity.
         last_price = self.getLastPrice(symbol)
         quantity = str(numeralWithPrecision(float(notional_usdt) * float(leverage) / float(last_price),
                        self.getStepSize(symbol)))
@@ -211,7 +211,7 @@ class BinanceFuturesClient:
         # Enforce margin type
         self.changeMarginType(symbol, margin_type)
 
-        # Update leverage at the symbol level
+        # Update leverage at the coin level
         self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
 
         # Place the order
