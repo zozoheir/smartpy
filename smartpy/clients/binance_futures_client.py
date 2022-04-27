@@ -197,7 +197,7 @@ class BinanceFuturesClient:
 
         return self.client.futures_create_order(symbol=symbol, side=side, type=order_type, quantity=quantity)
 
-    # We assume we only trade coins paired with usdt for now
+    # We assume we only trade coins_metadata paired with usdt for now
     def fillMarketOrder(self, symbol, side, notional_usdt, leverage, margin_type='ISOLATED'):
         logger.info('Placing order to {} {} USDT worth of {} @ MARKET'.format(side, notional_usdt, symbol))
         self.testConnection()

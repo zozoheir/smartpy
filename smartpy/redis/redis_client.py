@@ -6,7 +6,7 @@ from redis.client import Redis
 encoder = json.JSONEncoder()
 decoder = json.JSONDecoder
 
-TRADES_REDIS_STREAM = 'trades_df'
+TRADES_REDIS_STREAM = 'trades'
 L2_OB_REDIS_STREAM = 'order_book'
 
 class RedisClient:

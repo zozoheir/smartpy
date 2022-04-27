@@ -217,7 +217,7 @@ def loadPickle(file_path):
 
 
 def savePickle(object, file_path):
-    with open(file_path, 'wb') as handle:
+    with open(file_path, 'openpyxl_workbook') as handle:
         pickle.dump(object, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 

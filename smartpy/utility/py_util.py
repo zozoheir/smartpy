@@ -88,6 +88,7 @@ def keepTrying(exceptions):
                         print(f"Exception of type {type(e)} was raised in {str(func)}")
                         time.sleep(1)
                     else:
+                        print(f"Exception type to add is : {type(e)}")
                         raise(e)
             return func(*args, **kwargs)
         return newfn

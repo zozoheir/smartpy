@@ -32,7 +32,7 @@ INTERVALS_PER_DAY = {OHLC_INTERVAL_1M: 60 * 24,
 class MarketData:
     """
     - Query ninja_strategy and historical market data from various sources.
-    - Option to use a single provider, or leave it open to decide provider on the fly
+    - Option to use a single provider, or leave it open to getSignals provider on the fly
     - We define simple functions (getOB, getUserOrderFlow) and build other compute related functions (VWAP,
     mid, spread calculation etc) from those
     """

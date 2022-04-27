@@ -17,3 +17,6 @@ def numeralWithPrecision(f, n):
     f = math.floor(float(f) * 10 ** n) / 10 ** n
 
     return int(f) if int(n) == 0 else f
+
+def roundToNearest(x, base=5):
+    return base * round(x/base)
