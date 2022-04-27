@@ -63,8 +63,8 @@ class Database:
 
     def initializeTables(self, tables_model):
         """
-        This function checks if the tables supposed to be in the database are there.
-        If they are not, it creates them. This avoids bugs when querying an emtpy database,
+        This function checks if the tables supposed to be in the database_object are there.
+        If they are not, it creates them. This avoids bugs when querying an emtpy database_object,
         like after creating a new environment, or after deleting a table by accident
         :param self:
         :return:

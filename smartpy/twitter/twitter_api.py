@@ -37,9 +37,9 @@ class Twitter:
         for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_quote).get_items()):
             if count and i >= count:
                 break
-            tweets_list.append([tweet.date, tweet.id, tweet.username, tweet.content])
+            tweets_list.append([tweet.date, tweet.id, tweet.username, tweet.content, dir(tweet)])
 
-        return pd.DataFrame(tweets_list, columns=['timestamp', 'id', 'handle', 'text'])
+        return pd.DataFrame(tweets_list, columns=['timestamp', 'id', 'author', 'text','meta'])
 
 
     def search(self, parameters):
@@ -61,7 +61,7 @@ class Twitter:
     def _params_to_search_quote(self, search_parameters):
         parameters = search_parameters.copy()
         search_quote = ""
-        # content field.css doesn't exist so we remove it and put string to search at beginning of search quote
+        # content field doesn't exist so we remove it and put string to search at beginning of search quote
         if "content" in parameters.keys():
             search_quote = " OR ".join(parameters['content'])
         for key, value in parameters.items():

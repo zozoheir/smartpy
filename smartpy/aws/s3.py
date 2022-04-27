@@ -5,7 +5,7 @@ import tempfile
 
 import boto3
 from s3fs.core import S3FileSystem
-
+from botocore.exceptions import ClientError
 
 class S3:
 
@@ -22,7 +22,7 @@ class S3:
 
     # Pulling
     def downloadFile(self, bucket, key, save_to_path):
-        if self.checkIfObjectExists(bucket, key):
+        if self.isFile(bucket, key):
             print(f'Downloading to {save_to_path}')
             self.boto3_resource.Bucket(bucket).download_file(key, save_to_path)
         else:
@@ -52,13 +52,27 @@ class S3:
     def deleteFile(self, bucket, key):
         return self.boto3_client.delete_object(Bucket=bucket, Key=key)
 
+    def deleteFolder(self, bucket, folder):
+        self.boto3_resource.Bucket(bucket).objects.filter(Prefix=folder).delete()
+
     # Utility
-    def checkIfObjectExists(self, bucket, key):
+    def isFile(self, bucket, key):
 
         bucket = self.boto3_resource.Bucket(bucket)
         for object_summary in bucket.objects.filter(Prefix=key):
             return True
         return False
+
+    def isFolder(self, bucket_name, path_to_folder):
+        try:
+            res = self.boto3_client.list_objects_v2(
+                Bucket=bucket_name,
+                Prefix=path_to_folder
+            )
+            return res['ResponseMetadata']['HTTPStatusCode'] == 200
+        except ClientError as e:
+            # Logic to coin errors.
+            raise e
 
     def getObjectURI(self, bucket, key):
         return f"s3://{bucket}/{key}"

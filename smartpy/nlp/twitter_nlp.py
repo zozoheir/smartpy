@@ -7,7 +7,12 @@ import urllib.request
 
 TASKS = ['emotion','sentiment','hate','irony','offensive']
 
+##
+#https://colab.research.google.com/github/j-hartmann/emotion-english-distilroberta-base/blob/main/simple_emotion_pipeline.ipynb#scrollTo=pF9-b0e5MzmO
 
+
+
+##
 
 class TwitterRobertaBaseNLP:
 

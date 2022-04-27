@@ -1,7 +1,7 @@
 import datetime as dt
 import time
 from typing import Union
-
+import pandas as pd
 import dateutil.parser
 import pytz
 from dateutil.tz import tzlocal
@@ -20,6 +20,7 @@ FMT_MONTH_NAME = "%B"
 FMT_YMD = "%Y%m%d"
 FMT_YMD_DOT = "%Y.%m.%d"
 FMT_YMD_DASH = "%Y-%m-%d"
+FMT_YMD_SLASH = "%Y/%m/%d"
 FMT_YMD_UNDERSCORE = "%Y_%m_%d"
 FMT_YMD_HMS = "%Y-%m-%d %H:%M:%S"
 FMT_UNIX = "UNIX"
@@ -39,7 +40,8 @@ def toDatetime(date_time: Union[str, float, dt.datetime, pdTimestamp]) -> dt.dat
         toreturn = date_time
     elif isinstance(date_time, str):
         toreturn = dateutil.parser.parse(date_time)
-    elif isinstance(date_time, float):
+    elif isinstance(date_time, int):
+        # For Unix timestamps
         toreturn = dt.datetime.fromtimestamp(date_time)
     elif isinstance(date_time, pdTimestamp):
         toreturn = date_time.to_pydatetime()
@@ -58,18 +60,32 @@ def formatDatetime(date_time: Union[str, float, dt.datetime] = now(), format=STA
 def convertDatetimeTZ(date_time, to_timezone):
     return date_time.astimezone(tz=pytz.timezone(to_timezone))
 
-
 def localizeDatetime(date_time, to_timezone):
     return pytz.timezone(to_timezone).localize(date_time)
 
-
-def getCurrentDatetime(timezone='UTC') -> dt.datetime:
-    now = localizeDatetime(toDatetime(time.time()), CURRENT_TIMEZONE)
-    return convertDatetimeTZ(now, timezone)
+def getCurrentDatetime(wanted_timezone, current_timezone) -> dt.datetime:
+    now_current_timezone = localizeDatetime(toDatetime(int(time.time())), current_timezone)
+    now_desired_timezone = convertDatetimeTZ(now_current_timezone, wanted_timezone)
+    return now_desired_timezone
 
 def getCurrentTimeMicrosUTC() -> float:
     if IS_UTC:
         return time.time()
     else:
         return dt.datetime.utcnow().timestamp()
+
+def toUnixTimestamp(date_time):
+    date_time = toDatetime(date_time)
+    return int(time.mktime(date_time.timetuple()))
+
+def getPaginationIntervals(start,
+                           end,
+                           freq):
+    start = toDatetime(start)
+    end = toDatetime(end)
+    ranges = pd.date_range(start=start,
+                           end=end,
+                           freq=freq)
+    intervals = [(toUnixTimestamp(ranges[i]), toUnixTimestamp(ranges[i+1])) for i in range(len(ranges)-1)]
+    return intervals
 

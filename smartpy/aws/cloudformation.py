@@ -46,7 +46,7 @@ class CloudFormation:
                       file_path=cloudformation_template_file_path)
         time.sleep(1)
         # Check that the template exists in S3
-        if not s3.checkIfObjectExists(bucket=bucket, key=key):
+        if not s3.isFile(bucket=bucket, key=key):
             raise Exception('Cloudformation : template doesn\'t exit in S3')
 
         response = self.boto3_client.create_stack(

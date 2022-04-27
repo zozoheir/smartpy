@@ -68,7 +68,7 @@ class RedisStreamBatch:
 
     def pushToS3(self):
         if len(self.redis_batch_tuples) > 0:
-            # Upload batch and delete keys from stream except live_pnd buffer
+            # Upload batch and delete keys from stream except ninja_strategy buffer
             self.batch_keys = [i[0] for i in self.redis_batch_tuples]
             self.keys_to_remove = self.batch_keys[self.live_buffer_size:]
             self.uploadRedisDictsList(self.redis_batch_tuples)
