@@ -16,7 +16,7 @@ s3 = S3()
 
 boto3_session = boto3.session.Session()
 s3 = S3()
-datautil = data_util.DataUtil()
+datautil = data_util.ParquetUtil()
 cryptofeed_redis_client = redis.CryptofeedRedisCient()
 getTime = lambda : str(dt.datetime.now()).split('.')[0]
 
@@ -68,7 +68,7 @@ class RedisStreamBatch:
 
     def pushToS3(self):
         if len(self.redis_batch_tuples) > 0:
-            # Upload batch and delete keys from stream except ninja_strategy buffer
+            # Upload batch and delete keys from stream except tests buffer
             self.batch_keys = [i[0] for i in self.redis_batch_tuples]
             self.keys_to_remove = self.batch_keys[self.live_buffer_size:]
             self.uploadRedisDictsList(self.redis_batch_tuples)

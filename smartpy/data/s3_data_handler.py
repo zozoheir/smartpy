@@ -1,4 +1,4 @@
-from smartpy.utility.data_util import DataUtil
+from smartpy.utility.data_util import ParquetUtil
 from smartpy.aws.s3 import S3
 from smartpy.constants import *
 import smartpy.utility.os_util as os_util
@@ -17,7 +17,7 @@ class S3DataHandler:
     def __init__(self, local_directory, bucket=None, profile_name=None):
         self.local_dir = local_directory
         self.bucket = bucket
-        self.data_util = DataUtil(profile_name)
+        self.data_util = ParquetUtil(profile_name)
 
     def getData(self, key, method='aws', **kwargs):
 
@@ -46,7 +46,7 @@ class S3DataHandler:
         s3.downloadFile(bucket, key, save_to_file_path)
 
     def pushData(self, s3_uri, df):
-        self.data_util.toParquet(df, s3_uri, method='aws')
+        self.data_util.toS3ParquetDataset(df, s3_uri)
 
     def purgeDirectory(self, patterns: list = ['parquet']):
         files = os_util.walkDir(self.local_dir)

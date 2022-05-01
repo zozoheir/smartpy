@@ -1,3 +1,5 @@
+import os
+
 from urllib.parse import urlparse
 import json
 import pickle
@@ -7,18 +9,20 @@ import boto3
 from s3fs.core import S3FileSystem
 from botocore.exceptions import ClientError
 
+
 class S3:
 
-    def __init__(self, profile_name=None, **kwargs):
+    def __init__(self,
+                 aws_access_key_id,
+                 aws_secret_access_key):
         # We need this so setup the proper session locally
         # boto3.setup_default_session(profile_name=profile_name)
-        my_session = boto3.session.Session(profile_name=profile_name)
 
-        self.boto3_client = my_session.client('s3',
-                                         **kwargs)
-        self.boto3_resource = my_session.resource('s3',
-                                             **kwargs)
-        self.s3fs = S3FileSystem(session=my_session)
+        self.session = boto3.session.Session(aws_access_key_id=aws_access_key_id,
+                                             aws_secret_access_key=aws_secret_access_key)
+        self.boto3_client = self.session.client('s3')
+        self.boto3_resource = self.session.resource('s3')
+        self.s3fs = S3FileSystem(session=self.session)
 
     # Pulling
     def downloadFile(self, bucket, key, save_to_path):

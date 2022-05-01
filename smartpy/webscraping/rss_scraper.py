@@ -15,7 +15,7 @@ REQUIRED_COLS = ['timestamp', 'author', 'title', 'link', 'content_image_url', 't
 REQUIRED_RAW_COLUMNS = ['published','updated','authors','author','title','summary','description','content','link','id','media_content','media_thumbnail']
 
 
-datautil = data_util.DataUtil(boto3_session=global_boto3_session)
+datautil = data_util.ParquetUtil(boto3_session=global_boto3_session)
 
 s3 = S3()
 
