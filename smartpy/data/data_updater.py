@@ -115,7 +115,7 @@ class S3DataUpdater(DataUpdater):
         if len(self.ids_to_upload) > 0:
             self.df_to_upload = self.data_to_input[
                 self.data_to_input[self.id_column_name].astype(str).isin(self.ids_to_upload)]
-            logger.info(f'Uploading {len(self.ids_to_upload)} rows into {self.data_source}')
+            logger.info(f'Uploading {len(self.ids_to_upload)} rows into {self.source_file_path}')
             self.parquet_util.toParquet(df=self.df_to_upload,
                                         file_path=self.source_file_path,
                                         **kwargs)
