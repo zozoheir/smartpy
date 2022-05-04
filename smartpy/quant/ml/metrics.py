@@ -31,14 +31,12 @@ def getRegressionMetrics(y_true, y_pred):
     classification_report = metrics.classification_report(y_true_class, y_pred_class, output_dict=True)
     binary_class_benchmark = max(percentage_upticks, 1 - percentage_upticks)
     classification_stats = {
-        "accuracy": accuracy,
-        "auc_score": metrics.roc_auc_score(y_true_class, y_pred_class),
+        "reg_accuracy": accuracy,
         "percentage_upticks": percentage_upticks,
         "accuracy_alpha": accuracy - binary_class_benchmark,
-        "1_precision_alpha": classification_report['1']['precision'] - binary_class_benchmark,
-        "1_recall_alpha": classification_report['1']['recall'] - binary_class_benchmark,
+        "1_precision_alpha": classification_report['1']['precision'] - percentage_upticks,
+        "1_recall_alpha": classification_report['1']['recall'] - percentage_upticks,
     }
-    classification_stats.update(classification_report)
     regression_stats.update(classification_stats)
     return regression_stats
 
