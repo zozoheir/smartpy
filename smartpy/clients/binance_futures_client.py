@@ -262,7 +262,7 @@ class BinanceFuturesClient:
     def placeTrailingStopLoss(self, symbol, side, quantity, activation_price, callback_rate):
         logger.info('Placing trailing stop-loss to {} {} {}'.format(side, quantity, symbol))
         self.testConnection()
-        placed_tsl = {'SYMBOL': None, 'ORDER_ID': None, 'QUANTITY': None, 'ACTIVATION_PRICE': None, 'CALLBACK_RATE': None}
+        placed_tsl = {'symbol': None, 'ORDER_ID': None, 'QUANTITY': None, 'ACTIVATION_PRICE': None, 'CALLBACK_RATE': None}
         # Place trailing stop-loss
         try:
             # positionSide must be specified in hedge mode ('LONG' or 'SHORT')
@@ -282,7 +282,7 @@ class BinanceFuturesClient:
         while True:
             tsl = self.client.futures_get_order(symbol=symbol, orderId=sent_tsl['orderId'])
             if tsl['status'] == STATUS_NEW:
-                placed_tsl = {'SYMBOL': symbol, 'ORDER_ID': tsl['orderId'], 'QUANTITY': tsl['origQty'],
+                placed_tsl = {'symbol': symbol, 'ORDER_ID': tsl['orderId'], 'QUANTITY': tsl['origQty'],
                               'ACTIVATION_PRICE': tsl['activatePrice'], 'CALLBACK_RATE': tsl['priceRate']}
                 message = 'TSL {} has been placed. It will activate when {} price reaches {} and it will trail ' \
                           'the price with a callback rate of {}%'.format(placed_tsl['ORDER_ID'], symbol, placed_tsl['ACTIVATION_PRICE'],
@@ -306,7 +306,7 @@ class BinanceFuturesClient:
     def placeStopLoss(self, symbol, side, quantity, stop_price):
         logger.info('Placing stop-loss to {} {} {}'.format(side, quantity, symbol))
         self.testConnection()
-        placed_sl = {'SYMBOL': None, 'ORDER_ID': None, 'QUANTITY': None, 'STOP_PRICE': None}
+        placed_sl = {'symbol': None, 'ORDER_ID': None, 'QUANTITY': None, 'STOP_PRICE': None}
         # Place stop-loss
         try:
             # positionSide must be specified in hedge mode ('LONG' or 'SHORT')
@@ -325,7 +325,7 @@ class BinanceFuturesClient:
         while True:
             sl = self.client.futures_get_order(symbol=symbol, orderId=sent_sl['orderId'])
             if sl['status'] == STATUS_NEW:
-                placed_sl = {'SYMBOL': symbol, 'ORDER_ID': sl['orderId'], 'QUANTITY': sl['origQty'],
+                placed_sl = {'symbol': symbol, 'ORDER_ID': sl['orderId'], 'QUANTITY': sl['origQty'],
                              'STOP_PRICE': sl['stopPrice']}
                 message = 'Stop-loss {} has been placed with a stop price of {}'.format(placed_sl['ORDER_ID'], placed_sl['STOP_PRICE'])
                 self.telegram_logs.sendMsg(message)

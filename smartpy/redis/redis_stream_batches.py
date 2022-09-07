@@ -16,7 +16,7 @@ s3 = S3()
 
 boto3_session = boto3.session.Session()
 s3 = S3()
-datautil = data_util.ParquetUtil()
+parquet_util = data_util.ParquetUtil()
 cryptofeed_redis_client = redis.CryptofeedRedisCient()
 getTime = lambda : str(dt.datetime.now()).split('.')[0]
 
@@ -97,7 +97,7 @@ class RedisStreamBatch:
         df['redis_key'] = batch_keys
         df['date'] = current_date
         logging.info(f'Uploading {len(df)} {self.stream_name} rows to S3')
-        datautil.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
+        parquet_util.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
 
 
 class CryptoFeedTradesStreamBatch(RedisStreamBatch):
@@ -126,7 +126,7 @@ class CryptoFeedTradesStreamBatch(RedisStreamBatch):
         df['redis_key'] = batch_keys
         df['date'] = current_date
         logging.info(f'{getTime()} : Uploading {len(df)} {self.stream_name} rows to S3')
-        datautil.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
+        parquet_util.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
 
 
 class CryptoFeedOBStreamBatch(RedisStreamBatch):
@@ -155,5 +155,5 @@ class CryptoFeedOBStreamBatch(RedisStreamBatch):
         df['redis_key'] = batch_keys
         df['date'] = current_date
         logging.info(f'{getTime()} : Uploading {len(df)} {self.stream_name} rows to S3')
-        datautil.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
+        parquet_util.toS3ParquetDataset(df, new_file_s3_uri, partition_cols=['date'])
 

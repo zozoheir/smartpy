@@ -17,11 +17,12 @@ TASKS = ['emotion','sentiment','hate','irony','offensive']
 class TwitterRobertaBaseNLP:
 
     def __init__(self, task):
+        self.task = task
         model_name = f"cardiffnlp/twitter-roberta-base-{task}"
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-        # download label mapping
+        # download label coin_category_mapping
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
         with urllib.request.urlopen(mapping_link) as f:
             html = f.read().decode('utf-8').split("\n")

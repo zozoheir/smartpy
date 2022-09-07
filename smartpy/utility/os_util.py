@@ -90,7 +90,7 @@ def pathExists(path):
 
 
 def on_rm_error(func, path, exc_info):
-    # file_path contains the file_path of the file that couldn't be removed
+    # sizer_path contains the sizer_path of the sizer_path that couldn't be removed
     # let's just assume that it's read-only and unlink it.
     os.chmod(path, stat.S_IWRITE)
     os.unlink(path)
@@ -135,8 +135,25 @@ def getParentDir(path):
     return os.path.dirname(path)
 
 
-def listDir(path, format=''):
-    return [joinPaths([path, i]) for i in os.listdir(path) if format in i]
+def listDir(path, format='', recursive=False):
+    if recursive is True:
+        # create a list of file and sub directories
+        # names in the given directory
+        listOfFile = os.listdir(path)
+        allFiles = list()
+        # Iterate over all the entries
+        for entry in listOfFile:
+            # Create full path
+            fullPath = os.path.join(path, entry)
+            # If entry is a directory then get the list of files in this directory
+            if os.path.isdir(fullPath):
+                allFiles = allFiles + listDir(fullPath, recursive=recursive, format=format)
+            else:
+                if fullPath.endswith(format):
+                    allFiles.append(fullPath)
+        return allFiles
+    else:
+        return [joinPaths([path, i]) for i in os.listdir(path) if i.endswith(format)]
 
 
 def walkDir(paths: Union[str, list], extension="", ignore=[]) -> list:
@@ -217,7 +234,7 @@ def loadPickle(file_path):
 
 
 def savePickle(object, file_path):
-    with open(file_path, 'openpyxl_workbook') as handle:
+    with open(file_path, 'openpyxl_sizer_workbook') as handle:
         pickle.dump(object, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 

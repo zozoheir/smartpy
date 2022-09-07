@@ -82,7 +82,7 @@ class S3:
         return f"s3://{bucket}/{key}"
 
     def listFiles(self, bucket, key):
-        """List files in specific S3 URL"""
+        """List package in specific S3 URL"""
         bucket = self.boto3_resource.Bucket(bucket)
         files_in_bucket = list(bucket.objects.all())
         return files_in_bucket

@@ -18,7 +18,7 @@ dependencies:
   - pip:
     - awswrangler
     - snscrape
-    - twitter
+    - twitter_data
     - edlib
     - nltk
     - python-binance

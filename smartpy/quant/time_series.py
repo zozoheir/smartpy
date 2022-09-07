@@ -56,3 +56,34 @@ def addPastForwardValues(df, target_column, lags: list, prefix=""):
             df[f'{prefix}t-{abs(t)}'] = df[target_column].shift(abs(t))
     return df
 
+
+def addEventImpact(events_df,
+                   market_data_df,
+                   events_time_column='timestamp',
+                   market_data_price_column='close',
+                   market_data_time_column='timestamp',
+                   snapshots_intervals=None,
+                   ):
+    # Add past snapshots_intervals to analyze pre post
+    if min(snapshots_intervals) >= 0:
+        snapshots_intervals = snapshots_intervals + [-30, -20, -10]
+
+    # Sort by timestamp for merge asof
+    events_df = events_df.sort_values(by=events_time_column)
+    market_data_df = market_data_df.sort_values(by=market_data_time_column)
+
+    # Checking that formats are the same - formatting coding shortcut...
+    df = pd.DataFrame({'timestamp': [dt.datetime.now()]})
+    df['timestamp'] = pd.to_datetime(df.timestamp).dt.tz_localize('UTC')
+    assert events_df[events_time_column].dtype == df.timestamp.dtypes, \
+        "Market impact events_df time column should be a datetime64[ns, UTC] type"
+
+    past_forward_data = addPastForwardValues(df=market_data_df, target_column=market_data_price_column,
+                                             lags=snapshots_intervals)
+    past_forward_columns = [i for i in past_forward_data.columns if 't+' in i or 't-' in i]
+    for col in past_forward_columns:
+        past_forward_data[col] = past_forward_data[col] / past_forward_data['close'] - 1
+
+    final_df = pd.merge_asof(events_df, past_forward_data, left_on=events_time_column, right_on=market_data_time_column)
+
+    return final_df

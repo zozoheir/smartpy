@@ -26,6 +26,7 @@ class ParquetUtil:
             return aws_wrangler.s3.read_parquet(file_path,
                                                 boto3_session=self.s3.session,
                                                 dataset=True,
+                                                use_threads=True,
                                                 **kwargs)
         else:
             return pq.read_table(file_path, **kwargs).to_pandas()

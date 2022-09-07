@@ -11,7 +11,7 @@ class TelegramBot:
         self.verbose = verbose
 
     def sendMsg(self, bot_message) -> dict:
-        send_text = 'https://api.telegram.org/bot' + self.bot_token + '/sendMessage?chat_id=' + self.bot_chatID + '&text=' + bot_message
+        send_text = 'https://api.telegram.org/bot' + self.bot_token + '/sendMessage?chat_id=' + self.bot_chatID + '&word_list=' + bot_message
         response = requests.get(send_text)
         return response.json()
 
@@ -25,5 +25,5 @@ class TelegramBot:
 
     def getLastNMessagesFromChat(self, chat_id, count) -> list:
         messages = self.client.get_messages(chat_id, limit=count)
-        #last_messages = [message.text for message in messages]
+        #last_messages = [message.word_list for message in messages]
         return messages

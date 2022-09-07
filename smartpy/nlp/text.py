@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 def cleanText(text: str, remove_non_alpha=True, remove_stop_words=True, lower_case=True):
     """
-    Main cleaning function for any text.
+    Main cleaning function for any word_list.
     Includes: tokenizing, only keep alpha, lower case, remove stop words
     """
     # split into words

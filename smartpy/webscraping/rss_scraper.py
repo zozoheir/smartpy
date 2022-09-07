@@ -1,5 +1,5 @@
 import random
-from rumorzpy.constants import *
+from rumorzpy.constants.main_constants import *
 
 import time
 import smartpy.utility.data_util as data_util
@@ -9,10 +9,10 @@ from smartpy.aws.s3 import S3
 import datetime as dt
 
 
-REQUIRED_COLS = ['timestamp', 'author', 'title', 'link', 'content_image_url', 'thumbnail_image_url', 'date',
+REQUIRED_COLS = ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url', 'date',
                  'signal_source', 'id']
 
-REQUIRED_RAW_COLUMNS = ['published','updated','authors','author','title','summary','description','content','link','id','media_content','media_thumbnail']
+REQUIRED_RAW_COLUMNS = ['published','updated','authors','AUTHOR','title','summary','description','content','link','id','media_content','media_thumbnail']
 
 
 datautil = data_util.ParquetUtil(boto3_session=global_boto3_session)
@@ -100,8 +100,8 @@ class RSSScraper:
         # TODO Multiply unit pull frequency by batch size
 
 """
-    def process(self):
-        # Unique to each. First apply lambdas to process, and rename at the end
+    def generate(self):
+        # Unique to each. First apply lambdas to generate, and rename at the end
         pass
 
     def standardize(self):
@@ -113,7 +113,7 @@ class RSSScraper:
                 self.processed_df[col] = None
 
         self.final_df = self.processed_df[
-            ['timestamp', 'author', 'title', 'link', 'content_image_url', 'thumbnail_image_url']]
+            ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url']]
         self.final_df = self.final_df.sort_values(by='timestamp').reset_index(drop=True)
         self.final_df['date'] = self.final_df['timestamp'].dt.date
         self.final_df['signal_source'] = self.source_name

@@ -52,7 +52,7 @@ class DataUpdater:
             else:
                 self.ids_already_present = []
         # The read fails when the parquet dir is present but not the desired partition
-        # or if file not present
+        # or if sizer_path not present
         except (exceptions.NoFilesFound, ProgrammingError, FileNotFoundError):
             self.ids_already_present = []
 
@@ -70,7 +70,7 @@ class DataUpdater:
             logger.info(f'Uploading {len(self.ids_to_upload)} rows into {self.data_source}')
             if self.data_source == 'sql':
                 self.db_object.insert(df=self.df_to_upload,
-                                      table=self.table_name,
+                                      table_name=self.table_name,
                                       if_exists='append')
         else:
             logger.info(f'No new data to upload to {self.data_source}')
