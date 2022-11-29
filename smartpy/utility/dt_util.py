@@ -46,7 +46,7 @@ def toDatetime(date_time: Union[str, float, dt.datetime, pdTimestamp]) -> dt.dat
     elif isinstance(date_time, pdTimestamp):
         toreturn = date_time.to_pydatetime()
     else:
-        raise Exception("Date time input has to be of type datetime, str, float or pandas Timestamp")
+        raise Exception("Date time input has to be of types datetime, str, float or pandas Timestamp")
     return toreturn
 
 
@@ -60,13 +60,16 @@ def formatDatetime(date_time: Union[str, float, dt.datetime] = now(), format=STA
 def convertDatetimeTZ(date_time, to_timezone):
     return date_time.astimezone(tz=pytz.timezone(to_timezone))
 
+
 def localizeDatetime(date_time, to_timezone):
     return pytz.timezone(to_timezone).localize(date_time)
+
 
 def getCurrentDatetime(wanted_timezone, current_timezone) -> dt.datetime:
     now_current_timezone = localizeDatetime(toDatetime(int(time.time())), current_timezone)
     now_desired_timezone = convertDatetimeTZ(now_current_timezone, wanted_timezone)
     return now_desired_timezone
+
 
 def getCurrentTimeMicrosUTC() -> float:
     if IS_UTC:
@@ -74,9 +77,11 @@ def getCurrentTimeMicrosUTC() -> float:
     else:
         return dt.datetime.utcnow().timestamp()
 
+
 def toUnixTimestamp(date_time):
     date_time = toDatetime(date_time)
     return int(time.mktime(date_time.timetuple()))
+
 
 def getPaginationIntervals(start,
                            end,
@@ -86,6 +91,5 @@ def getPaginationIntervals(start,
     ranges = pd.date_range(start=start,
                            end=end,
                            freq=freq)
-    intervals = [(toUnixTimestamp(ranges[i]), toUnixTimestamp(ranges[i+1])) for i in range(len(ranges)-1)]
+    intervals = [(toUnixTimestamp(ranges[i]), toUnixTimestamp(ranges[i + 1])) for i in range(len(ranges) - 1)]
     return intervals
-

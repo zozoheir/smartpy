@@ -44,3 +44,7 @@ class ParquetUtil:
             return pq.write_to_dataset(table,
                                        root_path=file_path,
                                        **kwargs)
+
+
+def argsToDict(**args):
+    return {k: v for k, v in args.items()}

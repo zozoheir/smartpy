@@ -121,7 +121,7 @@ def getDBHostURL(region_name, database_name):
     rds_host = instances.get('DBInstances')[0].get('Endpoint').get('Address')
     return rds_host
 
-def getList(py_list_to_sql, column_type):
+def getSQLFromList(py_list_to_sql, column_type):
     if column_type == int:
         return "(" + ','.join([str(i) for i in list(py_list_to_sql)]) + ")"
     elif column_type == str:

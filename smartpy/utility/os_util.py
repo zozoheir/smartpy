@@ -138,7 +138,7 @@ def getParentDir(path):
 def listDir(path, format='', recursive=False):
     if recursive is True:
         # create a list of file and sub directories
-        # names in the given directory
+        # coin_names in the given directory
         listOfFile = os.listdir(path)
         allFiles = list()
         # Iterate over all the entries

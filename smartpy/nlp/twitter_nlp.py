@@ -5,22 +5,23 @@ from scipy.special import softmax
 import csv
 import urllib.request
 
-TASKS = ['emotion','sentiment','hate','irony','offensive']
+from rumorz_data_etl.constants import HUGGINGFACE_CACHE_DIR
 
-##
-#https://colab.research.google.com/github/j-hartmann/emotion-english-distilroberta-base/blob/main/simple_emotion_pipeline.ipynb#scrollTo=pF9-b0e5MzmO
-
+TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 
 ##
+# https://colab.research.google.com/github/j-hartmann/emotion-english-distilroberta-base/blob/main/simple_emotion_pipeline.ipynb#scrollTo=pF9-b0e5MzmO
 
 class TwitterRobertaBaseNLP:
 
     def __init__(self, task):
         self.task = task
         model_name = f"cardiffnlp/twitter-roberta-base-{task}"
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name,
+                                                       cache_dir=HUGGINGFACE_CACHE_DIR)
+        self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name,
+                                                                           cache_dir=HUGGINGFACE_CACHE_DIR)
 
         # download label coin_category_mapping
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"

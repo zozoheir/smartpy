@@ -2,10 +2,12 @@ import pandas as pd
 from smartpy.utility.aws_util import processResponse
 from smartpy.constants import *
 
+
 class ECS:
 
     def __init__(self, region_name):
-        self.boto3_client =  boto3.session.Session(profile_name=SMART_UNIVERSE_ENTITY_NAME).client('ecs', region_name=region_name)
+        self.boto3_client = boto3.session.Session(profile_name=SMART_UNIVERSE_ENTITY_NAME).client('ecs',
+                                                                                                  region_name=region_name)
 
     def registerTask(self, task_definition):
         response = self.boto3_client.register_task_definition(**task_definition)
@@ -39,8 +41,7 @@ class ECS:
                                                                           tasks=task_list["taskArns"])
             return pd.DataFrame(current_tasks_descriptions)
         else:
-            return {'tasks':[]}
-
+            return {'tasks': []}
 
     def listTasks(self, cluster_name):
         response = self.boto3_client.list_tasks(cluster=cluster_name)
@@ -50,7 +51,6 @@ class ECS:
     def getTaskNamesArnMapping(self):
         arns = self.ecs.listTaskDefinitions()['taskDefinitionArns']
         return {self.ecs._getTaskNameFromDefinitionArn(i): i for i in arns}
-
 
     def listTaskDefinitions(self):
         return self.boto3_client.list_task_definitions()
@@ -67,7 +67,7 @@ class ECS:
             current_cluster_descriptions = self.boto3_client.describe_clusters(clusters=clusters_list["clusterArns"])
             return pd.DataFrame(current_cluster_descriptions['clusters'])
         else:
-            return {'clusters':pd.DataFrame()}
+            return {'clusters': pd.DataFrame()}
 
     def createCluster(self, cluster_name):
         print('Creating cluster {}'.format(cluster_name))
@@ -80,4 +80,3 @@ class ECS:
 
     def _getTaskNameFromDefinitionArn(self, task_definition_arn):
         return task_definition_arn.split('task-definition/')[1].split(':')[0]
-

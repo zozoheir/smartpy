@@ -12,7 +12,7 @@ import datetime as dt
 REQUIRED_COLS = ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url', 'date',
                  'signal_source', 'id']
 
-REQUIRED_RAW_COLUMNS = ['published','updated','authors','AUTHOR','title','summary','description','content','link','id','media_content','media_thumbnail']
+REQUIRED_RAW_COLUMNS = ['published','updated','influencers','AUTHOR','title','summary','description','content','link','id','media_content','media_thumbnail']
 
 
 datautil = data_util.ParquetUtil(boto3_session=global_boto3_session)
@@ -56,7 +56,7 @@ class RSSScraper:
 
     def scrape(self):
         # Parse entries into dataframe
-        self.entries_df = feedparser.parse(self.source_rss_feed_url)['entries']
+        self.entries_df = feedparser.getChunks(self.source_rss_feed_url)['entries']
         self.entries_df = pd.DataFrame(self.entries_df)
         # published_parsed cause errors when uploading to parquet
         if 'published_parsed' in self.entries_df.columns:

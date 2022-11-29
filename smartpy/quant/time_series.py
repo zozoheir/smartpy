@@ -76,7 +76,7 @@ def addEventImpact(events_df,
     df = pd.DataFrame({'timestamp': [dt.datetime.now()]})
     df['timestamp'] = pd.to_datetime(df.timestamp).dt.tz_localize('UTC')
     assert events_df[events_time_column].dtype == df.timestamp.dtypes, \
-        "Market impact events_df time column should be a datetime64[ns, UTC] type"
+        "Market impact events_df time column should be a datetime64[ns, UTC] types"
 
     past_forward_data = addPastForwardValues(df=market_data_df, target_column=market_data_price_column,
                                              lags=snapshots_intervals)

@@ -2,33 +2,33 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 
-
 import pandas as pd
 
 import smartpy.utility.os_util as os_util
 import venv
 
 
-
 def installRequirements(env_path, requirements_file_path):
     if os_util.getOS() == 'Darwin':
         os_util.runCommand(f"{env_path}/bin/pip install -r {requirements_file_path}")
-    else :
+    else:
         os_util.runCommand(f"{env_path}/Scripts/pip.exe install -r {requirements_file_path}")
+
 
 def createVenvFromRequirements(env_path, requirements_file_path):
     venv.create(env_path, with_pip=True)
     installRequirements(env_path, requirements_file_path)
 
 
-def getUserAnswer(question:str, choices: list = [], default=""):
-    choices_str = '/'.join([str(i) for i in choices]) if choices==[] else ""
+def getUserAnswer(question: str, choices: list = [], default=""):
+    choices_str = '/'.join([str(i) for i in choices]) if choices == [] else ""
     while True:
-        continue_or_no = input(f'{question} {choices_str}' )
+        continue_or_no = input(f'{question} {choices_str}')
         if continue_or_no.lower() in [i.lower() for i in choices]:
             return continue_or_no
         elif continue_or_no == "":
             return default
+
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -37,7 +37,6 @@ def chunks(lst, n):
             yield lst.loc[i:i + n]
         else:
             yield lst[i:i + n]
-
 
 
 class throttle(object):
@@ -75,10 +74,11 @@ def keepTrying(exceptions):
     Retries the wrapped function/method `times` times if the exceptions listed
     in ``exceptions`` are thrown
     :param times: The number of times to repeat the wrapped function/method
-    :type times: Int
+    :types times: Int
     :param Exceptions: Lists of exceptions that trigger a keepTrying attempt
-    :type Exceptions: Tuple of Exceptions
+    :types Exceptions: Tuple of Exceptions
     """
+
     def decorator(func):
         def newfn(*args, **kwargs):
             attempt = 0
@@ -87,11 +87,13 @@ def keepTrying(exceptions):
                     return func(*args, **kwargs)
                 except Exception as e:
                     if type(e) in exceptions:
-                        print(f"Exception of type {type(e)} was raised in {str(func)}")
+                        print(f"Exception of types {type(e)} was raised in {str(func)}")
                         time.sleep(1)
                     else:
-                        print(f"Exception type to add is : {type(e)}")
-                        raise(e)
+                        print(f"Exception types to add is : {type(e)}")
+                        raise (e)
             return func(*args, **kwargs)
+
         return newfn
+
     return decorator

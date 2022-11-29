@@ -39,7 +39,7 @@ class S3DataHandler:
                 self.downloadData(bucket=self.bucket, key=key, save_to_file_path=expected_local_file_path)
                 data_to_return = self.data_util.readS3ParquetDataset(expected_local_file_path, **kwargs)
         elif self.local_dir is None and method != 'aws':
-            raise Exception('No local directory provided. You need a local sizer_path to use the pandas/pyarrow/dask methods')
+            raise Exception('No local directory provided. You need a local sizer_path to use the pandas/pyarrow/dask method')
 
         return data_to_return
 

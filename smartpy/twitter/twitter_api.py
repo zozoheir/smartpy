@@ -1,15 +1,8 @@
-import datetime as dt
 import logging
-import random
-from typing import Union
 import tweepy
 
 import pandas as pd
-import pytz
 import snscrape.modules.twitter as sntwitter
-import twitter_data
-
-import smartpy.nlp.text as nlp_text
 
 logging.getLogger("snscrape").setLevel(logging.WARNING)
 

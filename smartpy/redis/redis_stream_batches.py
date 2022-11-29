@@ -52,7 +52,7 @@ class RedisStreamBatch:
             logging.info(f"{getTime()} : {str(dt.datetime.now()).split('.')[0]} : Processing stream  -{self.stream_name}-")
             # Set throttle timestamps
             self.last_batch_processing_throttle_timestamp = time.time()
-            # Query batch from redis, parse and upload to S3
+            # Query batch from redis, getChunks and upload to S3
             # We query 5 times the normal batch size if the queue has accumulated > batch_size to avoid bottlenecks
             if current_redis_stream_length > self.batch_size:
                 batch_size_to_use = self.batch_size * 5
