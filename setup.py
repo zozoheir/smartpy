@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-setup(name='Smartpy',
+setup(name='smartpy',
       version='0.0.1',
       description='Smartpy first release',
       author='Othmane Zoheir',
