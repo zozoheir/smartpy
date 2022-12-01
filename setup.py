@@ -6,5 +6,5 @@ setup(name='smartpy',
       author='Othmane Zoheir',
       author_email='zozoheir@umich.edu',
       url='',
-      packages=[],
+      packages=find_namespace_packages(include=['smartpy.*'])
      )
