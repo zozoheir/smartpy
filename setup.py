@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='smartpy',
       version='0.1',
@@ -6,5 +6,5 @@ setup(name='smartpy',
       author='Othmane Zoheir',
       author_email='zozoheir@umich.edu',
       url='',
-      packages=find_namespace_packages(include=['smartpy.*'])
+      packages=find_packages("smartpy/*")
      )
