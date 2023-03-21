@@ -1,10 +1,10 @@
 import boto3
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy import create_engine, inspect, text
 
-from sqlalchemy.dialects.mysql import insert
+from sqlalchemy.dialects.mysql import insert as insert_mysql
+from sqlalchemy.dialects.postgresql import insert as insert_postgre
 from sqlalchemy import table, column
 
 from smartpy.utility.log_util import getLogger
@@ -20,10 +20,19 @@ class Database:
                  username='othmane1',
                  password='Zozoheir3[',
                  port='5432',
+                 type='mysql'
                  ):
-        self.connection_string = 'mysql+pymysql://' + username + ':' + password + '@' + endpoint + ':' + str(
-            port) + '/' + database_name
         self.database_name = database_name
+        self.database_type = type
+
+        if type == 'mysql':
+            self.connection_string = 'mysql+pymysql://' + username + ':' + password + '@' + endpoint + ':' + str(
+                port) + '/' + database_name
+        elif type == 'postgres':
+            self.connection_string = 'postgresql+psycopg2://' + username + ':' + password + '@' + endpoint + ':' + str(
+                port) + '/' + database_name
+
+        self.engine = create_engine(self.connection_string)
 
     def open(self):
         # Test connection
@@ -53,14 +62,26 @@ class Database:
         return self.query("SELECT * FROM information_schema.tables WHERE table_schema = '" + self.database_name + "'")[
             'TABLE_NAME'].values
 
-    def upsert(self, df, table_name, **kwargs):
+    def upsert(self, df, table_name, primary_key=None, **kwargs):
+
         data_iter = [tuple(val.values()) for i, val in enumerate(df.to_dict('records'))]
         columns = [column(c) for c in df.columns]
         mytable = table(table_name, *columns)
-        insert_stmt = insert(mytable).values(data_iter)
-        on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(insert_stmt.inserted)
+        if self.database_type == 'mysql':
+            insert_stmt = insert_mysql(mytable).values(data_iter)
+            on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(insert_stmt.inserted)
+            return self.engine.execute(on_duplicate_key_stmt)
+
+        elif self.database_type == 'postgres':
+            insert_stmt = text(
+                f"INSERT INTO {table_name} ({','.join(df.columns)}) VALUES ({','.join([':' + col for col in df.columns])}) ON CONFLICT ({','.join(primary_key)}) DO UPDATE SET {','.join([f'{col}=excluded.{col}' for col in df.columns if col not in primary_key])}")
+
+            # execute the SQL statement for each row in the dataframe
+            for row in df.itertuples(index=False):
+                self.engine.execute(insert_stmt, **row._asdict())
+
         logger.info(f"Upserting {len(data_iter)} rows into {table_name}")
-        return self.engine.execute(on_duplicate_key_stmt)
+
 
     def insert(self, df, table_name, **kwargs):
         """
@@ -80,35 +101,6 @@ class Database:
             self.close()
             raise e
 
-    def initializeTables(self, tables_model):
-        """
-        This function checks if the tables supposed to be in the database_object are there.
-        If they are not, it creates them. This avoids bugs when querying an emtpy database_object,
-        like after creating a new environment, or after deleting a table_name by accident
-        :param self:
-        :return:
-        """
-
-        getEmptyDataFrame = lambda cols: pd.DataFrame({col: [None] for col in cols})
-        empty_database_tables_from_model = {key: getEmptyDataFrame(tables_model[key]) for key in
-                                            tables_model.keys()}
-
-        # Detect tables that do not already exist
-        absent_tables = []
-        for t in empty_database_tables_from_model.keys():
-            table_name = (self.database_name + '.' + t)
-            try:
-                pd.read_sql(f'SELECT * FROM {table_name}', self.engine)
-            except Exception as e:
-                if type(e) == ProgrammingError and e.orig.args[1] == f"Table '{table_name}' doesn't exist":
-                    absent_tables.append(t)
-
-        # Create absent tables
-        for table in tables_model.keys():
-            print(table)
-            if table in absent_tables:
-                print(f"Initializing {table}")
-                empty_database_tables_from_model[table].to_sql(table, self.engine, index=False)
 
 def getDBHostURL(region_name, database_name):
     """
