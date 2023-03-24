@@ -1,10 +1,9 @@
 import boto3
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, text
 
 from sqlalchemy.dialects.mysql import insert as insert_mysql
-from sqlalchemy.dialects.postgresql import insert as insert_postgre
 from sqlalchemy import table, column
 
 from smartpy.utility.log_util import getLogger

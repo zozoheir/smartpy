@@ -1,6 +1,5 @@
 import pandas as pd
 from smartpy.utility.aws_util import processResponse
-from smartpy.constants import *
 
 
 class ECS:

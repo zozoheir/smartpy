@@ -38,6 +38,7 @@ print(dt_util.getCurrentDatetime('UTC'))
 
 
 ## Data updater
+
 ```python
 import pandas as pd
 from smartpy.data.data_updater import DataUpdater

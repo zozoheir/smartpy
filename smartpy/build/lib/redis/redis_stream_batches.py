@@ -6,7 +6,6 @@ from smartpy.aws.s3 import S3
 import datetime as dt
 import smartpy.utility.data_util as data_util
 import time
-from smartpy.constants import *
 import logging
 
 logging.basicConfig(level=logging.INFO)

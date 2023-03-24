@@ -7,7 +7,6 @@ from time import time
 
 import numpy as np
 import pandas as pd
-from smartpy.constants import *
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
@@ -100,7 +99,7 @@ class MarketData:
                           ln=False,
                           data_quality_cutoff=None) -> pd.DataFrame:
         if start_time==end_time:
-            end_time = dt_util.formatDatetime(dt_util.toDatetime(end_time)+dt.timedelta(days=1), dt_util.FMT_YMD_DASH)
+            end_time = dt_util.formatDatetime(dt_util.toDatetime(end_time) + dt.timedelta(days=1), dt_util.FMT_YMD_DASH)
         df_to_return = None
         if self.single_provider:
             df_to_return = self.single_client.getHistoricalOHLC(symbol, interval, start_time, end_time, volume_data, ln)

@@ -1,6 +1,5 @@
 from smartpy.utility.data_util import ParquetUtil
 from smartpy.aws.s3 import S3
-from smartpy.constants import *
 import smartpy.utility.os_util as os_util
 
 

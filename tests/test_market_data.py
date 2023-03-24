@@ -1,8 +1,6 @@
 import unittest
 
 import smartpy.data.market_data as market_data
-from smartpy.constants import *
-
 
 BINANCE_API_KEYS = {'binance': {'api_key': 'pBhiobD37b8BnX0jn1JoOZkXVka3T4xtxyTqEvGQzvitLHemWQjJFikDa7b7UyVE',
                                 'api_secret': 'NxVL1uozIvJ24CMmxkBhQ7XtQwQBk1XenHM1bsDr4Z4bWErokKP8dZzB4IetSlm5'

@@ -1,5 +1,3 @@
-from smartpy.constants import *
-
 class ParameterStore:
 
     def __init__(self, region_name):

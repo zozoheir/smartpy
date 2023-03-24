@@ -1,6 +1,3 @@
-from smartpy.constants import *
-
-
 class ECR:
 
     def __init__(self, region_name):

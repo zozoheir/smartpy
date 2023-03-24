@@ -4,8 +4,6 @@ import time
 import botocore
 from botocore.exceptions import ClientError
 
-from smartpy.constants import *
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 

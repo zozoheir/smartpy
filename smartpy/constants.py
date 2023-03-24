@@ -1,6 +1,5 @@
 import smartpy.utility.os_util as os_util
 import boto3
-import os
 
 CURRENT_DIR = os_util.getCurrentDirPath()
 GLOBAL_BOTO3_SESSION = boto3.Session()

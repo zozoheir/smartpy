@@ -2,7 +2,6 @@ import time
 
 import pandas as pd
 
-from smartpy.constants import *
 from smartpy.aws.s3 import S3
 from smartpy.utility.aws_util import processResponse
 
