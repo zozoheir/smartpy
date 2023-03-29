@@ -5,8 +5,6 @@ from scipy.special import softmax
 import csv
 import urllib.request
 
-from rumorz_data_etl.constants import HUGGINGFACE_CACHE_DIR
-
 TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 
@@ -15,13 +13,15 @@ TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 class TwitterRobertaBaseNLP:
 
-    def __init__(self, task):
+    def __init__(self,
+                 task,
+                 huggingface_cache_dir):
         self.task = task
         model_name = f"cardiffnlp/twitter-roberta-base-{task}"
         self.tokenizer = AutoTokenizer.from_pretrained(model_name,
-                                                       cache_dir=HUGGINGFACE_CACHE_DIR)
+                                                       cache_dir=huggingface_cache_dir)
         self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name,
-                                                                           cache_dir=HUGGINGFACE_CACHE_DIR)
+                                                                           cache_dir=huggingface_cache_dir)
 
         # download label coin_category_mapping
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
