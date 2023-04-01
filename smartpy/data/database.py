@@ -1,10 +1,12 @@
 import boto3
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, text
+import datetime as dt
 
+from sqlalchemy import create_engine, text
 from sqlalchemy.dialects.mysql import insert as insert_mysql
 from sqlalchemy import table, column
+from psycopg2.extras import execute_values
 
 from smartpy.utility.log_util import getLogger
 
@@ -61,25 +63,40 @@ class Database:
         return self.query("SELECT * FROM information_schema.tables WHERE table_schema = '" + self.database_name + "'")[
             'TABLE_NAME'].values
 
-    def upsert(self, df, table_name, primary_key=None, **kwargs):
+    def upsert(self,
+               df,
+               table_name,
+               primary_key=None,
+               including_insert_timestamp=True,
+               **kwargs):
 
-        data_iter = [tuple(val.values()) for i, val in enumerate(df.to_dict('records'))]
-        columns = [column(c) for c in df.columns]
-        mytable = table(table_name, *columns)
+        if type(primary_key) == str:
+            primary_key = [primary_key]
+        if including_insert_timestamp is True:
+            df['insert_timestamp'] = dt.datetime.now(dt.timezone.utc)
+
+
         if self.database_type == 'mysql':
+            data_iter = [tuple(val.values()) for i, val in enumerate(df.to_dict('records'))]
+            columns = [column(c) for c in df.columns]
+            mytable = table(table_name, *columns)
             insert_stmt = insert_mysql(mytable).values(data_iter)
             on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(insert_stmt.inserted)
             return self.engine.execute(on_duplicate_key_stmt)
 
         elif self.database_type == 'postgres':
-            insert_stmt = text(
-                f"INSERT INTO {table_name} ({','.join(df.columns)}) VALUES ({','.join([':' + col for col in df.columns])}) ON CONFLICT ({','.join(primary_key)}) DO UPDATE SET {','.join([f'{col}=excluded.{col}' for col in df.columns if col not in primary_key])}")
 
-            # execute the SQL statement for each row in the dataframe
-            for row in df.itertuples(index=False):
-                self.engine.execute(insert_stmt, **row._asdict())
+            with self.engine.connect() as connection:
+                raw_connection = connection.connection
+                cursor = raw_connection.cursor()
+                insert_stmt = (
+                    f"INSERT INTO {table_name} ({','.join(df.columns)}) VALUES %s ON CONFLICT ({','.join(primary_key)}) DO UPDATE SET {','.join([f'{col}=excluded.{col}' for col in df.columns if col not in primary_key])}"
+                )
+                data = [tuple(row) for row in df.itertuples(index=False)]
+                execute_values(cursor, insert_stmt, data)
+                raw_connection.commit()
 
-        logger.info(f"Upserting {len(data_iter)} rows into {table_name}")
+        logger.info(f"Upserted {len(data_iter)} rows into {table_name}")
 
 
     def insert(self, df, table_name, **kwargs):

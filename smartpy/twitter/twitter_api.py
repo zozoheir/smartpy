@@ -21,13 +21,6 @@ TWITTER_API_KEYS = {
 }
 
 
-screen_name = "geeksforgeeks"
-
-
-
-
-##
-
 
 class Twitter:
 
@@ -58,16 +51,13 @@ class Twitter:
         else:
             count = None
         search_quote = self._params_to_search_quote(parameters)
+
         tweets_list = []
         for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_quote).get_items()):
             if count and i >= count:
                 break
-            #tweet_status = self.api.get_status(tweet.id)
-            #favourites = tweet_status.favorite_count
-            #retweet_count = tweet_status.retweet_count
-            tweets_list.append([tweet.date, tweet.id, tweet.username, tweet.content, tweet.url])
-
-        return pd.DataFrame(tweets_list, columns=['timestamp', 'tweet_id', 'author', 'text','url'])
+            tweets_list.append(tweet)
+        return tweets_list
 
 
     def search(self, parameters):
@@ -76,12 +66,12 @@ class Twitter:
         if 'from' in parameters.keys():
             if isinstance(parameters['from'], str):
                 parameters['from'] = [parameters['from']]
-            df = pd.DataFrame()
+            tweets_list = []
             for handle in parameters['from']:
                 tmp_params = parameters.copy()
                 tmp_params['from'] = handle
-                df = df.append(self._raw_search(tmp_params))
-            return df
+                tweets_list += self._raw_search(tmp_params)
+            return tweets_list
         else:
             return self._raw_search(parameters)
 
@@ -100,4 +90,3 @@ class Twitter:
                 else:
                     search_quote = search_quote + f" {key}:{value}"
         return search_quote
-
