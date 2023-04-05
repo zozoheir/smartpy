@@ -43,3 +43,4 @@ class TwitterRobertaBaseNLP:
             s = scores[ranking[i]]
             emotions[l] = np.round(float(s), 4)
         return emotions
+

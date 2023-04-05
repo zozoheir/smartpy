@@ -96,7 +96,7 @@ class Database:
                 execute_values(cursor, insert_stmt, data)
                 raw_connection.commit()
 
-        logger.info(f"Upserted {len(data_iter)} rows into {table_name}")
+        logger.info(f"Upserted {len(df)} rows into {table_name}")
 
 
     def insert(self, df, table_name, **kwargs):
