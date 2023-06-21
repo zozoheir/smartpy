@@ -1,4 +1,3 @@
-import boto3
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -77,7 +76,7 @@ class Database:
 
 
         if self.database_type == 'mysql':
-            data_iter = [tuple(val.values()) for i, val in enumerate(df.to_dict('records'))]
+            data_iter = [tuple(val.values()) for i, val in enumerate(df.as_dict('records'))]
             columns = [column(c) for c in df.columns]
             mytable = table(table_name, *columns)
             insert_stmt = insert_mysql(mytable).values(data_iter)
@@ -124,6 +123,7 @@ def getDBHostURL(region_name, database_name):
     :param database_name:
     :return:
     """
+    import boto3
     instances = boto3.client('rds', region_name=region_name).describe_db_instances(
         DBInstanceIdentifier=database_name)
     rds_host = instances.get('DBInstances')[0].get('Endpoint').get('Address')

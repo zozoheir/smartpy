@@ -1,5 +1,4 @@
 import random
-from rumorzpy.constants.main_constants import *
 
 import time
 import smartpy.utility.data_util as data_util
@@ -8,16 +7,12 @@ import pandas as pd
 from smartpy.aws.s3 import S3
 import datetime as dt
 
+from smartpy.utility import dt_util
 
 REQUIRED_COLS = ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url', 'date',
                  'signal_source', 'id']
 
 REQUIRED_RAW_COLUMNS = ['published','updated','influencers','AUTHOR','title','summary','description','content','link','id','media_content','media_thumbnail']
-
-
-datautil = data_util.ParquetUtil(boto3_session=global_boto3_session)
-
-s3 = S3()
 
 
 class RSSScraper:
@@ -71,7 +66,7 @@ class RSSScraper:
                 self.raw_df[col] = float('nan')
 
     def addIDColumns(self):
-        self.raw_df['signal_source'] = self.source_name
+        self.raw_df['source_name'] = self.source_name
         self.raw_df['xid'] = self.source_name
 
         # Each RSS feed gives timestamp as either 'published' or 'updated'
@@ -97,38 +92,3 @@ class RSSScraper:
 
         self.current_pull_frequency_seconds = min(60*60,abs(ewm_publishing_frequency_seconds * 0.5))
         self.current_pull_frequency_seconds = self.current_pull_frequency_seconds * random.randint(5,10)/10
-        # TODO Multiply unit pull frequency by batch size
-
-"""
-    def generate(self):
-        # Unique to each. First apply lambdas to generate, and rename at the end
-        pass
-
-    def standardize(self):
-
-        for col in REQUIRED_COLS:
-            if col in self.fields_renaming_dict.keys():
-                self.processed_df[col] = self.processed_df[self.fields_renaming_dict[col]]
-            elif col not in self.processed_df.columns:
-                self.processed_df[col] = None
-
-        self.final_df = self.processed_df[
-            ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url']]
-        self.final_df = self.final_df.sort_values(by='timestamp').reset_index(drop=True)
-        self.final_df['date'] = self.final_df['timestamp'].dt.date
-        self.final_df['signal_source'] = self.source_name
-"""
-
-
-
-
-class CointelegraphScraper(RSSScraper):
-
-    def __init__(self, source_name, source_rss_feed_url):
-        super().__init__(source_name=source_name,
-                         source_rss_feed_url=source_rss_feed_url,
-                         s3_bucket=None,
-                         s3_dir=None,
-                         table_name=None,
-                         )
-

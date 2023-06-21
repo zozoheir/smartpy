@@ -9,7 +9,7 @@ class TestS3(unittest.TestCase):
         s3 = S3()
         test_file_key = 'test_file.json'
         # Upload and check if present
-        s3.uploadDictAsJson(CRYPTOSTREET_UTILITY_S3_BUCKET, test_file_key, {'test':'test'})
+        s3.uploadDictAsJson(CRYPTOSTREET_UTILITY_S3_BUCKET, test_file_key, {'tests':'tests'})
         self.assertTrue(s3.isFile(CRYPTOSTREET_UTILITY_S3_BUCKET, test_file_key))
         # Delete and check if absent
         s3.deleteFile(CRYPTOSTREET_UTILITY_S3_BUCKET, test_file_key)

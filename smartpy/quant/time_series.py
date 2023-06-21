@@ -64,7 +64,7 @@ def addEventImpact(events_df,
                    market_data_time_column='timestamp',
                    snapshots_intervals=None,
                    ):
-    # Add past snapshots_intervals to analyze pre post
+    # Add past snapshots_intervals to analyze pre create
     if min(snapshots_intervals) >= 0:
         snapshots_intervals = snapshots_intervals + [-30, -20, -10]
 

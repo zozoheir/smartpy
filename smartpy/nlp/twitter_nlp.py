@@ -5,6 +5,8 @@ from scipy.special import softmax
 import csv
 import urllib.request
 
+from smartpy.utility import os_util
+
 TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 
@@ -14,14 +16,11 @@ TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 class TwitterRobertaBaseNLP:
 
     def __init__(self,
-                 task,
-                 huggingface_cache_dir):
+                 task):
         self.task = task
-        model_name = f"cardiffnlp/twitter-roberta-base-{task}"
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name,
-                                                       cache_dir=huggingface_cache_dir)
-        self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name,
-                                                                           cache_dir=huggingface_cache_dir)
+        model_name = f'cardiffnlp/twitter-roberta-base-{task}'
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
         # download label coin_category_mapping
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
