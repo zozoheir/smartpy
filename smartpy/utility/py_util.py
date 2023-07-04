@@ -68,14 +68,14 @@ class throttle(object):
         return wrapper
 
 
-def keepTrying(exceptions):
+def keep_trying(exceptions):
     """
     Retry Decorator
     Retries the wrapped function/method `times` times if the exceptions listed
     in ``exceptions`` are thrown
     :param times: The number of times to repeat the wrapped function/method
     :types times: Int
-    :param Exceptions: Lists of exceptions that trigger a keepTrying attempt
+    :param Exceptions: Lists of exceptions that trigger a keep_trying attempt
     :types Exceptions: Tuple of Exceptions
     """
 

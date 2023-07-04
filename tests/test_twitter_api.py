@@ -13,7 +13,7 @@ class TestTwitterAPI(unittest.TestCase):
     def test_search(self):
 
         search_params = {
-            "from": 'elonmusk',
+            "title": 'elonmusk',
             "since": '2021-06-01',
             "until":'2021-07-01'
         }
@@ -21,7 +21,7 @@ class TestTwitterAPI(unittest.TestCase):
 
 
         search_params = {
-            "from": ['elonmusk',"ptj_official"],
+            "title": ['elonmusk',"ptj_official"],
             "since": '2021-06-01',
             "until": '2021-07-01'
         }

@@ -6,7 +6,7 @@ import nltk
 from nltk.corpus import words
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-#[nltk.download(i, quiet=True) for i in ['wordnet', 'stopwords', 'punkt', 'words']]
+
 
 
 def cleanText(text: str, remove_non_alpha=True, remove_stop_words=True, lower_case=True):
