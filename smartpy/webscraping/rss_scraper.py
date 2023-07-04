@@ -1,94 +1,97 @@
 import random
-
 import time
-import smartpy.utility.data_util as data_util
-import feedparser
 import pandas as pd
-from smartpy.aws.s3 import S3
-import datetime as dt
+import feedparser
 
 from smartpy.utility import dt_util
+from smartpy.utility.log_util import getLogger
 
-REQUIRED_COLS = ['timestamp', 'AUTHOR', 'title', 'link', 'content_image_url', 'thumbnail_image_url', 'date',
-                 'signal_source', 'id']
-
-REQUIRED_RAW_COLUMNS = ['published','updated','influencers','AUTHOR','title','summary','description','content','link','id','media_content','media_thumbnail']
+logger = getLogger(__name__)
+REQUIRED_RAW_COLUMNS = [
+    'timestamp', 'author', 'title', 'summary', 'link', 'image_url', 'source'
+]
 
 
 class RSSScraper:
+    def __init__(self, rss_feeds):
+        self.rss_feeds = rss_feeds
+        self.scrapers = [self.SingleFeedScraper(feed) for feed in rss_feeds]
 
-    def __init__(self,
-                 source_name,
-                 source_rss_feed_url,
-                 s3_bucket,
-                 s3_dir,
-                 table_name):
-        self.source_name = source_name
-        self.source_rss_feed_url = source_rss_feed_url
-        self.s3_bucket = s3_bucket
-        self.s3_dir = s3_dir
-        self.table_name = table_name
-        self.s3_file_uri = f"s3://{self.s3_bucket}/{self.s3_dir}/{table_name}_raw.parquet"
+    def listen(self):
+        while True:
+            for scraper in self.scrapers:
+                data = scraper.scrape()
+                if data is not None:
+                    yield data
 
-        self.entries_df = None
-        self.raw_df = None
-        self.processed_df = None
+    class SingleFeedScraper:
+        def __init__(self, source):
+            self.source, self.source_rss_feed_url = source
+            self.entries_df = None
+            self.final_df = None
 
-        # Internal variables for parsing
-        self.last_update_timestamp = 0
-        self.current_pull_frequency_seconds = 0
+            self.last_update_timestamp = 0
+            self.current_pull_frequency_seconds = 0
 
-    def print(self, msg):
-        print(str(dt.datetime.now()).split('.')[0]+' : '+msg)
-
-    def isTimeToUpdate(self):
-        if time.time() - self.last_update_timestamp > self.current_pull_frequency_seconds:
-            self.last_update_timestamp = time.time()
-            self.print(f"Starting {self.source_name} requests...")
-            return True
-        else:
-            return False
-
-    def scrape(self):
-        # Parse entries into dataframe
-        self.entries_df = feedparser.getChunks(self.source_rss_feed_url)['entries']
-        self.entries_df = pd.DataFrame(self.entries_df)
-        # published_parsed cause errors when uploading to parquet
-        if 'published_parsed' in self.entries_df.columns:
-            self.entries_df = self.entries_df.drop('published_parsed', axis=1)
-
-        # Create raw open_orders to have similar columns across all rss feeds
-        self.raw_df = pd.DataFrame()
-        for col in REQUIRED_RAW_COLUMNS:
-            if col in self.entries_df.columns:
-                self.raw_df[col] = self.entries_df[col]
+        def is_time_to_update(self):
+            if time.time() - self.last_update_timestamp > self.current_pull_frequency_seconds:
+                self.last_update_timestamp = time.time()
+                logger.info(f"Starting {self.source} requests...")
+                return True
             else:
-                self.raw_df[col] = float('nan')
+                return False
 
-    def addIDColumns(self):
-        self.raw_df['source_name'] = self.source_name
-        self.raw_df['xid'] = self.source_name
+        def fetch_feed(self):
+            try:
+                self.entries_df = feedparser.parse(self.source_rss_feed_url)['entries']
+                if len(self.entries_df) == 0:
+                    logger.warning("No entries found in RSS feed")
+                self.entries_df = pd.DataFrame(self.entries_df)
+            except Exception as e:
+                logger.info(f"Error fetching RSS feed: {e}")
+                raise e
 
-        # Each RSS feed gives timestamp as either 'published' or 'updated'
-        if 'published' in self.entries_df.columns:
-            self.raw_df['xid'] = self.raw_df['xid'] + '-' + self.raw_df['published'].apply(lambda x: str(pd.to_datetime(x).timestamp()))
-        elif 'updated' in self.entries_df.columns:
-            self.raw_df['xid'] = self.raw_df['xid'] + '-' + self.raw_df['updated'].apply(
-                lambda x: str(pd.to_datetime(x).timestamp()))
+        def process_feed(self):
+            self.final_df = pd.DataFrame()
 
-    def updatePullFrequency(self):
-        """
-        We check the RSS feed at a dynamic frequency based on recent frequency of publication
-        """
-        try:
-            ewm_publishing_frequency_seconds = self.raw_df['published'].apply(pd.to_datetime).diff(1).dt.total_seconds().ewm(alpha=0.5).mean()[
-                len(self.raw_df) - 1]
-        except TypeError:
-            # We do this in the case that given timestamps do not have proper timezones
-            self.raw_df['published'] = self.raw_df['published'].apply(lambda x:dt_util.convertDatetimeTZ(dt_util.toDatetime(x), 'UTC'))
-            ewm_publishing_frequency_seconds = self.raw_df['published'].diff(1).dt.total_seconds().ewm(alpha=0.5).mean()[
-                len(self.raw_df) - 1]
+            # Google news
+            if 'media_content' in self.entries_df.columns:
+                self.final_df['image_url'] = self.entries_df['media_content'].apply(
+                lambda x: x[0]['url'] if type(x) is list else None)
+            else:
+                self.final_df['image_url'] = None
+
+            if 'author' not in self.entries_df.columns:
+                self.final_df['author'] = None
 
 
-        self.current_pull_frequency_seconds = min(60*60,abs(ewm_publishing_frequency_seconds * 0.5))
-        self.current_pull_frequency_seconds = self.current_pull_frequency_seconds * random.randint(5,10)/10
+            try:
+                self.entries_df['timestamp'] = self.entries_df['published'].apply(
+                    lambda x: dt_util.convertDatetimeTZ(dt_util.toDatetime(x), 'UTC'))
+            except Exception as e:
+                logger.info(f"Error parsing RSS feed: {e}")
+                raise e
+
+            self.entries_df['source'] = self.source
+            for col in REQUIRED_RAW_COLUMNS:
+                self.final_df[col] = self.entries_df.get(col)
+
+        def update_pull_frequency(self):
+            publishing_frequency_seconds = \
+            self.final_df['timestamp'].diff(-1).dt.total_seconds().ewm(alpha=0.5).mean().iloc[-1]
+            self.current_pull_frequency_seconds = min(120, abs(publishing_frequency_seconds * 0.5))
+            self.current_pull_frequency_seconds = self.current_pull_frequency_seconds * random.uniform(0.5, 1.0)
+            self.final_df['timestamp'] = self.final_df['timestamp'].astype(str)
+
+        def scrape(self):
+            if not self.is_time_to_update():
+                return None
+            self.fetch_feed()
+            if len(self.entries_df)>0:
+                self.process_feed()
+                self.update_pull_frequency()
+                return self.final_df
+            else:
+                logger.warning(f"No entries found in RSS feed for {self.source}")
+                self.current_pull_frequency_seconds = 150
+                return None

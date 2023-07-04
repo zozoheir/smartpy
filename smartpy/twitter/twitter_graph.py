@@ -7,16 +7,18 @@ from twitter.search import Search
 from twitter.account import Account
 from twscrape import AccountsPool, API
 
+
 class TwitterGraph:
 
     def __init__(self,
-                 email,
                  username,
-                 password):
+                 password,
+                 email,
+                 ):
 
-        self.search = Search(email, username, password, save=False)
-        self.scraper = Scraper(email, username, password, save=False)
-        self.account = Account(email, username, password, save=False)
+        self.search = Search(username, password, email, save=False)
+        self.scraper = Scraper(username, password, email,  save=False)
+        self.account = Account(username, password, email, save=False)
 
 
     def get_timeline(self,
@@ -39,11 +41,11 @@ class TwitterGraph:
         try:
             # Use the expressions to find the values
             user_id = user_dict['data']['user']['result']['rest_id']
-            likes = [match.value for match in likes_expr.find(user_dict)][0]
-            tweets_and_replies = [match.value for match in tweets_and_replies_expr.find(user_dict)][0]
-            following = [match.value for match in following_expr.find(user_dict)][0]
-            followers = [match.value for match in followers_expr.find(user_dict)][0]
-            account_creation_str = [match.value for match in account_creation_expr.find(user_dict)][0]
+            likes = [match.last_value for match in likes_expr.find(user_dict)][0]
+            tweets_and_replies = [match.last_value for match in tweets_and_replies_expr.find(user_dict)][0]
+            following = [match.last_value for match in following_expr.find(user_dict)][0]
+            followers = [match.last_value for match in followers_expr.find(user_dict)][0]
+            account_creation_str = [match.last_value for match in account_creation_expr.find(user_dict)][0]
 
             # Convert the timestamp to a datetime object
             account_creation = dt.datetime.strptime(account_creation_str, '%a %b %d %H:%M:%S %z %Y')
@@ -76,16 +78,16 @@ class TwitterGraph:
 
         # Use the expressions to find the values
         try:
-            tweet_id = [match.value for match in tweet_id_expr.find(tweet_dict)][0]
-            screen_name = [match.value for match in screen_name_expr.find(tweet_dict)][0]
-            followers_count = [match.value for match in followers_count_expr.find(tweet_dict)][0]
-            url_screen_name = [match.value for match in url_expr.find(tweet_dict)][0]  # used to build URL
-            text = [match.value for match in text_expr.find(tweet_dict)][0]
-            timestamp_str = [match.value for match in timestamp_expr.find(tweet_dict)][0]
-            image_url = [match.value for match in image_url_expr.find(tweet_dict)][0]
-            media_urls = [match.value for match in media_url_expr.find(tweet_dict)]
-            like_count = [match.value for match in like_count_expr.find(tweet_dict)][0]
-            retweet_count = [match.value for match in retweet_count_expr.find(tweet_dict)][0]
+            tweet_id = [match.last_value for match in tweet_id_expr.find(tweet_dict)][0]
+            screen_name = [match.last_value for match in screen_name_expr.find(tweet_dict)][0]
+            followers_count = [match.last_value for match in followers_count_expr.find(tweet_dict)][0]
+            url_screen_name = [match.last_value for match in url_expr.find(tweet_dict)][0]  # used to build URL
+            text = [match.last_value for match in text_expr.find(tweet_dict)][0]
+            timestamp_str = [match.last_value for match in timestamp_expr.find(tweet_dict)][0]
+            image_url = [match.last_value for match in image_url_expr.find(tweet_dict)][0]
+            media_urls = [match.last_value for match in media_url_expr.find(tweet_dict)]
+            like_count = [match.last_value for match in like_count_expr.find(tweet_dict)][0]
+            retweet_count = [match.last_value for match in retweet_count_expr.find(tweet_dict)][0]
 
             # Convert the timestamp to a datetime object
             timestamp = dt.datetime.strptime(timestamp_str, '%a %b %d %H:%M:%S %z %Y')
@@ -109,7 +111,6 @@ class TwitterGraph:
             return None
 
 
-
 async def query_twitter(username, password, email, email_pw, user_id):
     pool = AccountsPool()
     await pool.add_account(username, password, email, email_pw)
@@ -121,8 +122,6 @@ async def query_twitter(username, password, email, email_pw, user_id):
     async for tweet in api.user_tweets(user_id, limit=20):
         user_tweets.append(tweet)
     return user, user_tweets
-
-
 
 
 def get_tweet_attributes(tweet):
@@ -137,7 +136,6 @@ def get_tweet_attributes(tweet):
         "likeCount": tweet['likeCount'],
     }
     return tweet_attributes
-
 
 
 def get_user_stats(user):

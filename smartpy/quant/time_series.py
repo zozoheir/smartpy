@@ -11,7 +11,7 @@ def addRangeBreaks(series, range_lookback):
     df['rolling_max'] = df['close'].rolling(range_lookback).max()
     df['rolling_min'] = df['close'].rolling(range_lookback).min()
     df['break'] = np.where((df['close'] == df['rolling_min']) | (df['close'] == df['rolling_min']), 1, 0)
-    df['break'] = df['break'].rolling(range_lookback).sum() / range_lookback
+    df['break'] = df['break'].rolling(range_lookback).last_value() / range_lookback
     df['break'] = df['break'].fillna(method='bfill')
     return np.array(df['break'])
 
