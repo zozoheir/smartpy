@@ -1,18 +1,13 @@
 import random
 import time
 
-import html2text
 import pandas as pd
 import feedparser
-import trafilatura
 
 from smartpy.utility import dt_util
 from smartpy.utility.log_util import getLogger
 
 logger = getLogger(__name__)
-
-converter = html2text.HTML2Text()
-converter.ignore_links = True
 
 
 class RSSScraper:
