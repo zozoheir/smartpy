@@ -7,7 +7,7 @@ import urllib.request
 
 from smartpy.utility import os_util
 
-TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
+ROBERTA_EMOTION_TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 
 ##

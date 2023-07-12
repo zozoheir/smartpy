@@ -1,8 +1,8 @@
 import random
 import time
 
-import pandas as pd
 import feedparser
+import pandas as pd
 
 from smartpy.utility import dt_util
 from smartpy.utility.log_util import getLogger
@@ -26,8 +26,8 @@ class RSSScraper:
 class SingleFeedScraper:
     def __init__(self, source):
         self.source, self.source_rss_feed_url = source
+        self.articles_list = None
         self.entries_df = None
-
         self.last_update_timestamp = 0
         self.current_pull_frequency_seconds = 0
 
@@ -41,12 +41,8 @@ class SingleFeedScraper:
 
     def fetch_feed(self):
         try:
-            self.entries_df = feedparser.parse(self.source_rss_feed_url)['entries']
-            if len(self.entries_df) == 0:
-                logger.warning("No entries found in RSS feed")
-            else:
-                self.entries_df = pd.DataFrame(self.entries_df)
-                self.entries_df['source'] = self.source
+            self.articles_list = feedparser.parse(self.source_rss_feed_url)['entries']
+            self.entries_df = pd.DataFrame(self.articles_list)
         except Exception as e:
             logger.info(f"Error fetching RSS feed: {e}")
             raise e
@@ -63,6 +59,7 @@ class SingleFeedScraper:
             return None
         self.fetch_feed()
         if len(self.entries_df) > 0:
+            self.entries_df['source'] = self.source
             self.update_pull_frequency()
             return self.entries_df
         else:
