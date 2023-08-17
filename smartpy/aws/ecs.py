@@ -21,7 +21,7 @@ class ECS:
         return response
 
     def runTask(self, run_configuration):
-        response = self.boto3_client.run_task(**run_configuration)
+        response = self.boto3_client.run_chain(**run_configuration)
         print('Running task ECS Task {}'.format(run_configuration['taskDefinition']))
         response = processResponse(response)
         return response

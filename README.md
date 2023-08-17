@@ -11,7 +11,7 @@ new_folder_name = 'new_name'
 new_folder_path = os_util.joinPaths([home_path, new_folder_name])
 os_util.ensureDir(new_folder_path)
 
-# Get Memory and CPU stats
+# Get ChatMemoryLoader and CPU stats
 os_util.getComputerStats()
 ```
 

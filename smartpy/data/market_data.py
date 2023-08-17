@@ -121,7 +121,7 @@ class MarketData:
 
         percentage_points_missing = len(missing_points) / expected_points_in_timeframe
         print(
-            '{} {} to {} : data quality check - {:.1%} of expected data points missing'.format(symbol, start_time,
+            '{} {} to {} : data quality get_check_results - {:.1%} of expected data points missing'.format(symbol, start_time,
                                                                                                end_time,
                                                                                                percentage_points_missing))
         if data_quality_cutoff:

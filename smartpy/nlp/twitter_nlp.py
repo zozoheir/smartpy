@@ -5,22 +5,22 @@ from scipy.special import softmax
 import csv
 import urllib.request
 
-from smartpy.utility import os_util
+from smartpy.utility.log_util import getLogger
+
+logger = getLogger(__name__)
 
 ROBERTA_EMOTION_TASKS = ['emotion', 'sentiment', 'hate', 'irony', 'offensive']
 
 
-##
-# https://colab.research.google.com/github/j-hartmann/emotion-english-distilroberta-base/blob/main/simple_emotion_pipeline.ipynb#scrollTo=pF9-b0e5MzmO
-
 class TwitterRobertaBaseNLP:
 
     def __init__(self,
+                 dir,
                  task):
         self.task = task
         model_name = f'cardiffnlp/twitter-roberta-base-{task}'
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.dl_model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(dir+f"/models_data/huggingface/{task}_tokenizer")
+        self.dl_model = AutoModelForSequenceClassification.from_pretrained(dir+f"/models_data/huggingface/{task}_model")
 
         # download label coin_category_mapping
         mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
@@ -42,4 +42,5 @@ class TwitterRobertaBaseNLP:
             s = scores[ranking[i]]
             emotions[l] = np.round(float(s), 4)
         return emotions
+
 
