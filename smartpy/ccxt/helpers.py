@@ -70,7 +70,7 @@ def requestGateioTradesText(symbol):
                     break
                 page += 1
             else:
-                raise GateIOAPIRequestError(f"Gate IO API spot orders request issue : {r.content}")
+                raise GateIOAPIRequestError(f"Gate Function API spot orders request issue : {r.content}")
 
         if len(orders_df) == 0 and page == 1:
             break

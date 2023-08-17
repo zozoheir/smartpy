@@ -7,7 +7,7 @@ class GDrive:
     def __init__(self, client_secret_json_path: str):
         self.gauth = GoogleAuth()
         self.drive = GoogleDrive(self.gauth)
-        # Try to load saved telegram_client credentials
+        # Try to load_model saved telegram_client credentials
         self.gauth.LoadClientConfigFile(client_secret_json_path)
 
     def listFilesFolders(self, location_path='root') -> dict:
