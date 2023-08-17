@@ -10,7 +10,6 @@ import zipfile
 from pathlib import Path
 from typing import Union
 
-import matplotlib as mpl
 import json
 
 
@@ -221,11 +220,6 @@ def recursiveOverwrite(src, dest, ignore=None):
         shutil.copyfile(src, dest)
 
 
-def getFontNames():
-    font_paths = mpl.font_manager.findSystemFonts()
-    font_objects = mpl.font_manager.createFontList(font_paths)
-    font_names = [f.name for f in font_objects]
-    return font_names
 
 
 def loadPickle(file_path):
