@@ -34,7 +34,7 @@ class SingleFeedScraper:
     def is_time_to_update(self):
         if time.time() - self.last_update_timestamp > self.current_pull_frequency_seconds:
             self.last_update_timestamp = time.time()
-            logger.info(f"Starting {self.source} requests...")
+            logger.info(f"Starting {self.source} requests - Pull frequency (s): {int(self.current_pull_frequency_seconds)}")
             return True
         else:
             return False
@@ -46,7 +46,6 @@ class SingleFeedScraper:
         except Exception as e:
             logger.info(f"Error fetching RSS feed: {e}")
             raise e
-
 
     def update_pull_frequency(self):
         self.entries_df['timestamp'] = self.entries_df['published'].apply(lambda x: dt_util.convertDatetimeTZ(dt_util.toDatetime(x), 'UTC'))

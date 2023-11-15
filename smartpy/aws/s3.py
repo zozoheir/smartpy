@@ -19,7 +19,7 @@ class S3:
         # boto3.setup_default_session(profile_name=profile_name)
 
         self.session = boto3.session.Session(aws_access_key_id=aws_access_key_id,
-                                             aws_secret_access_key=aws_secret_access_key)
+                                                        aws_secret_access_key=aws_secret_access_key)
         self.boto3_client = self.session.client('s3')
         self.boto3_resource = self.session.resource('s3')
         self.s3fs = S3FileSystem(session=self.session)

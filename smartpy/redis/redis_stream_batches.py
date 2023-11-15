@@ -44,7 +44,7 @@ class RedisStreamBatch:
         self.keys_to_remove = []
 
     def loadBatch(self):
-        current_redis_stream_length = cryptofeed_redis_client.redis.xlen(self.stream_name)
+        current_redis_stream_length = cryptofeed_redis_client.redis_client.xlen(self.stream_name)
         if time.time() - self.last_batch_processing_throttle_timestamp >= 60 * self.batch_processing_frequency_min \
                 or current_redis_stream_length > self.batch_size + self.live_buffer_size:
             logging.info(f"-------------------------")
@@ -75,8 +75,8 @@ class RedisStreamBatch:
     def purge(self):
         if len(self.keys_to_remove) > 0:
             logging.info(f'{getTime()} : Purging stream')
-            cryptofeed_redis_client.redis.xdel(self.stream_name, *self.keys_to_remove)
-            current_redis_stream_length = cryptofeed_redis_client.redis.xlen(self.stream_name)
+            cryptofeed_redis_client.redis_client.xdel(self.stream_name, *self.keys_to_remove)
+            current_redis_stream_length = cryptofeed_redis_client.redis_client.xlen(self.stream_name)
             logging.info(f"{getTime()} : Stream size after purging: {current_redis_stream_length}")
 
     # Each stream has a way of parsing its dicts.

@@ -1,4 +1,6 @@
+import sys
 import time
+import traceback
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -92,8 +94,19 @@ def keep_trying(exceptions):
                     else:
                         print(f"Exception types to add is : {type(e)}")
                         raise (e)
+
             return func(*args, **kwargs)
 
         return newfn
 
     return decorator
+
+
+
+def get_exception_info(e):
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback_details = traceback.format_exception(exc_type, exc_value, exc_traceback)
+    detailed_error_msg = f"Exception Type: {exc_type.__name__}\n" \
+                         f"Exception Message: {str(e)}\n" \
+                         f"Stack Trace: {''.join(traceback_details)}"
+    return detailed_error_msg

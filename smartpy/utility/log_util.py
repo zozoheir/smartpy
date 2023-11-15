@@ -4,8 +4,8 @@ import logging
 import pprint
 
 
-def getLogger(name, save_to_path=None):
-    logging.basicConfig(format='%(levelname)s | %(name)s | %(asctime)s : %(message)s ', level=logging.INFO)
+def getLogger(name, save_to_path=None, format='%(levelname)s | %(name)s | %(asctime)s : %(message)s '):
+    logging.basicConfig(format=format, level=logging.INFO)
     logger = logging.getLogger(name)
 
     if save_to_path:

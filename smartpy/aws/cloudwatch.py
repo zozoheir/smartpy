@@ -12,7 +12,7 @@ class Logs:
 
     def __init__(self, region_name):
         self.boto3_client = boto3.session.Session(profile_name=SMART_UNIVERSE_ENTITY_NAME).client('logs',
-                                                                                                  region_name=region_name)
+                                                                                                             region_name=region_name)
 
     def log(self, group, stream, msg):
         msg = msg.lower().capitalize()

@@ -6,7 +6,7 @@ class ECS:
 
     def __init__(self, region_name):
         self.boto3_client = boto3.session.Session(profile_name=SMART_UNIVERSE_ENTITY_NAME).client('ecs',
-                                                                                                  region_name=region_name)
+                                                                                                             region_name=region_name)
 
     def registerTask(self, task_definition):
         response = self.boto3_client.register_task_definition(**task_definition)
