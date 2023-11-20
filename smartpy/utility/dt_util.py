@@ -94,19 +94,3 @@ def getPaginationIntervals(start,
     intervals = [(toUnixTimestamp(ranges[i]), toUnixTimestamp(ranges[i + 1])) for i in range(len(ranges) - 1)]
     return intervals
 
-
-def getTimeAgo(compared_time):
-    delta = now - compared_time
-    # Determine the amount of time elapsed since last update
-    days, seconds = delta.days, delta.seconds
-    hours = days * 24 + seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    if days > 0:
-        return f"{days} days ago"
-    elif hours > 0:
-        return f"{hours} hours ago"
-    elif minutes > 0:
-        return f"{minutes} minutes ago"
-    else:
-        return f"{seconds} seconds ago"
