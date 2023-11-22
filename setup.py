@@ -7,4 +7,9 @@ setup(name='smartpy',
       author='Othmane Zoheir',
       author_email='zozoheir@umich.edu',
       url='',
-     )
+      install_requires=[
+          'pandas',
+          'matplotlib',
+          'numpy',
+      ]
+      )

@@ -5,8 +5,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-from env_util.environment import rumorz_env
-
 
 class PostgresDB:
     def __init__(self, username, password, host, port, db_name):
