@@ -7,12 +7,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 
 class PostgresDB:
-    def __init__(self, username, password, host, port, db_name):
-        db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}'
+    def __init__(self, username, password, host, port, db_name, sslmode=None):
+        db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
         self.engine = create_engine(db_uri)
         self.sync_session_maker = sessionmaker(bind=self.engine)
-
-        async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}'
+        self.engine.connect()
+        async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
         self.async_engine = create_async_engine(async_db_uri)
         self.async_session_maker = sessionmaker(
             bind=self.async_engine,
