@@ -6,7 +6,7 @@ def get_cosine_similarity(a, b):
     b = np.array(b)
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def top_n_similar(input_vector, vector_list, top_n=5):
+def get_top_n_similar_vectors(input_vector, vector_list, top_n=5):
     similarities = [get_cosine_similarity(input_vector, vector) for vector in vector_list]
     top_similarities_indices = np.argsort(similarities)[-top_n:][::-1]
     return top_similarities_indices

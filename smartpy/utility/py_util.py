@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import traceback
@@ -5,6 +6,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 import pandas as pd
+import psutil
 
 import smartpy.utility.os_util as os_util
 import venv
@@ -70,7 +72,7 @@ class throttle(object):
         return wrapper
 
 
-def keep_trying(exceptions):
+def keep_trying(exceptions, retries=3):
     """
     Retry Decorator
     Retries the wrapped function/method `times` times if the exceptions listed
@@ -80,15 +82,15 @@ def keep_trying(exceptions):
     :param Exceptions: Lists of exceptions that trigger a keep_trying attempt
     :types Exceptions: Tuple of Exceptions
     """
-
     def decorator(func):
         def newfn(*args, **kwargs):
-            attempt = 0
-            while True:
+            attempts = 0
+            while attempts < retries:
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
                     if type(e) in exceptions:
+                        attempts += 1
                         print(f"Exception of types {type(e)} was raised in {str(func)}")
                         time.sleep(1)
                     else:
@@ -110,3 +112,10 @@ def get_exception_info(e):
                          f"Exception Message: {str(e)}\n" \
                          f"Stack Trace: {''.join(traceback_details)}"
     return detailed_error_msg
+
+
+def get_memory_usage():
+    process = psutil.Process(os.getpid())
+    memory_usage_bytes = process.memory_info().rss
+    memory_usage_mb = memory_usage_bytes / (1024 ** 2)
+    return memory_usage_mb

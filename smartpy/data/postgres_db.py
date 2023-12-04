@@ -8,10 +8,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 class PostgresDB:
     def __init__(self, username, password, host, port, db_name, sslmode=None):
-        db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
-        self.engine = create_engine(db_uri)
+        self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
+        self.engine = create_engine(self.db_uri)
         self.sync_session_maker = sessionmaker(bind=self.engine)
-        self.engine.connect()
         async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
         self.async_engine = create_async_engine(async_db_uri)
         self.async_session_maker = sessionmaker(
@@ -27,7 +26,7 @@ class PostgresDB:
         try:
             yield session
             session.commit()
-        except:
+        except Exception:
             session.rollback()
             raise
         finally:
@@ -40,7 +39,7 @@ class PostgresDB:
         try:
             yield session
             await session.commit()
-        except:
+        except Exception:
             await session.rollback()
             raise
         finally:
@@ -49,13 +48,16 @@ class PostgresDB:
     def write(self, query, params={}):
         with self.session_scope() as session:
             result = session.execute(text(query), params)
-            session.commit()
         return result
 
     def read(self, query, params={}):
         with self.session_scope() as session:
             result = session.execute(text(query), params).fetchall()
         return result
+
+    def insert(self, table_name, rows, on_conflict="do nothing"):
+        query, params = self.get_upsert_query(table_name, rows, on_conflict)
+        return self.write(query, params)
 
     async def async_read(self, query: str, params={}):
         async with self.async_session_scope() as session:
@@ -64,10 +66,10 @@ class PostgresDB:
 
     async def async_write(self, query: str, params={}):
         async with self.async_session_scope() as session:
-            await session.execute(text(query), params)
-            await session.commit()
+            result = await session.execute(text(query), params)
+            return result
 
-    def insert(self, table_name, rows, on_conflict="do nothing"):
+    def get_upsert_query(self, table_name, rows, on_conflict="do nothing"):
         if not rows:
             return
 
@@ -100,51 +102,7 @@ class PostgresDB:
         elif on_conflict != "raise":
             raise ValueError("Invalid on_conflict option")
 
-        params = {f'{col}{i}': row[col] for i, row in enumerate(rows) for col in columns}
-        return self.write(query, params)
-
-    def upsert(self, table_name, rows, conflict_target):
-        if not rows:
-            return
-        columns = rows[0].keys()
-        for row in rows:
-            for key, value in row.items():
-                if isinstance(value, dict):
-                    row[key] = json.dumps(value)
-
-        unique_placeholders = [
-            '(' + ', '.join([f':{col}{i}' for col in columns]) + ')'
-            for i, _ in enumerate(rows)
-        ]
-        values_placeholders = ', '.join(unique_placeholders)
-
-        query = f"""
-            INSERT INTO {table_name} ({', '.join(columns)}) 
-            VALUES {values_placeholders}
-            ON CONFLICT ({', '.join(conflict_target)})
-            DO UPDATE SET
-                """ + ", ".join([f"{col} = EXCLUDED.{col}" for col in columns if col not in conflict_target]) + """
-            RETURNING *;
-            """
-
-        params = {f'{col}{i}': row[col] for i, row in enumerate(rows) for col in columns}
-
-        return self.write(query, params)
+        params = {f'{col}{i}': row.get(col, None) for i, row in enumerate(rows) for col in columns}
+        return query, params
 
 
-    async def async_upsert(self, table_name, rows, conflict_target):
-        if not rows:
-            return
-        columns = rows[0].keys()
-        query = f"""
-            INSERT INTO {table_name} ({', '.join(columns)}) VALUES 
-            """ + ",".join(
-            ["(" + ",".join([f"%({k}{i})s" for k in columns]) + ")" for i, _ in enumerate(rows)]) + f"""
-            ON CONFLICT ({conflict_target})
-            DO UPDATE SET
-                """ + ", ".join([f"{col} = EXCLUDED.{col}" for col in columns if col != conflict_target]) + """
-            RETURNING *;
-            """
-        params = {k + str(i): v for i, row in enumerate(rows) for k, v in row.items()}
-        result = await self.async_write(query, params)
-        return result
