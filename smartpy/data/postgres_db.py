@@ -56,6 +56,8 @@ class PostgresDB:
         return result
 
     def insert(self, table_name, rows, on_conflict="do nothing"):
+        if len(rows) == 0:
+            return None, None
         query, params = self.get_upsert_query(table_name, rows, on_conflict)
         return self.write(query, params)
 
@@ -70,9 +72,6 @@ class PostgresDB:
             return result
 
     def get_upsert_query(self, table_name, rows, on_conflict="do nothing"):
-        if not rows:
-            return
-
         # Extract columns from the first row
         columns = rows[0].keys()
 
