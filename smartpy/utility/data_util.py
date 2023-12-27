@@ -5,7 +5,7 @@ from botocore.client import Config
 
 from smartpy.aws.s3 import S3
 
-aws_wrangler.config.botocore_config = Config(connect_timeout=50, read_timeout=500)
+aws_wrangler.tinyllm_config.botocore_config = Config(connect_timeout=50, read_timeout=500)
 
 
 class ParquetUtil:

@@ -8,10 +8,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 class PostgresDB:
     def __init__(self, username, password, host, port, db_name, sslmode=None):
-        self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
+        self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}' + (
+            f'?sslmode={sslmode}' if sslmode else '')
         self.engine = create_engine(self.db_uri)
         self.sync_session_maker = sessionmaker(bind=self.engine)
-        async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}'+(f'?sslmode={sslmode}' if sslmode else '')
+        async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}' + (
+            f'?sslmode={sslmode}' if sslmode else '')
         self.async_engine = create_async_engine(async_db_uri)
         self.async_session_maker = sessionmaker(
             bind=self.async_engine,
@@ -45,33 +47,44 @@ class PostgresDB:
         finally:
             await session.close()
 
-    def write(self, query, params={}):
-        with self.session_scope() as session:
-            result = session.execute(text(query), params)
-        return result
-
-    def read(self, query, params={}):
+    def read(self, query, params={}, as_dict=False):
         with self.session_scope() as session:
             result = session.execute(text(query), params).fetchall()
-        return result
-
-    def insert(self, table_name, rows, on_conflict="do nothing"):
-        if len(rows) == 0:
-            return None, None
-        query, params = self.get_upsert_query(table_name, rows, on_conflict)
-        return self.write(query, params)
+            if as_dict:
+                result = [r._asdict() for r in result]
+                return result
+            else:
+                return result
 
     async def async_read(self, query: str, params={}):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
             return result.fetchall()
 
+    def write(self, query, params={}):
+        with self.session_scope() as session:
+            result = session.execute(text(query), params)
+        return result
+
     async def async_write(self, query: str, params={}):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
             return result
 
-    def get_upsert_query(self, table_name, rows, on_conflict="do nothing"):
+    def insert(self, table_name, rows, on_conflict="do nothing"):
+        if len(rows) == 0:
+            return None, None
+        query, params = self._get_upsert_query(table_name, rows, on_conflict)
+        return self.write(query, params)
+
+    async def async_insert(self, table_name, rows, on_conflict="do nothing"):
+        if len(rows) == 0:
+            return None, None
+        query, params = self._get_upsert_query(table_name, rows, on_conflict)
+        result = await self.async_write(query, params)
+        return result
+
+    def _get_upsert_query(self, table_name, rows, on_conflict="do nothing"):
         # Extract columns from the first row
         columns = rows[0].keys()
 
@@ -103,5 +116,3 @@ class PostgresDB:
 
         params = {f'{col}{i}': row.get(col, None) for i, row in enumerate(rows) for col in columns}
         return query, params
-
-
