@@ -4,9 +4,20 @@ from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
 
+
+DB_RETRIES = 10
+WAIT_SEC = 2
 
 class PostgresDB:
+
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     def __init__(self, username, password, host, port, db_name, sslmode=None):
         self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}' + (
             f'?sslmode={sslmode}' if sslmode else '')
@@ -21,6 +32,11 @@ class PostgresDB:
             class_=AsyncSession,
         )
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     @contextmanager
     def session_scope(self):
         """Provide a transactional scope around a series of operations."""
@@ -34,6 +50,11 @@ class PostgresDB:
         finally:
             session.close()
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     @asynccontextmanager
     async def async_session_scope(self):
         """Provide a transactional scope around a series of operations for asynchronous sessions."""
@@ -47,6 +68,11 @@ class PostgresDB:
         finally:
             await session.close()
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     def read(self, query, params={}, as_dict=False):
         with self.session_scope() as session:
             result = session.execute(text(query), params).fetchall()
@@ -56,21 +82,37 @@ class PostgresDB:
             else:
                 return result
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     async def async_read(self, query: str, params={}):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
             return result.fetchall()
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     def write(self, query, params={}):
         with self.session_scope() as session:
             result = session.execute(text(query), params)
         return result
 
+    @retry(
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+    )
     async def async_write(self, query: str, params={}):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
             return result
 
+ 
     def insert(self, table_name, rows, on_conflict="do nothing"):
         if len(rows) == 0:
             return None, None
