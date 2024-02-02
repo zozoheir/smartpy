@@ -37,17 +37,16 @@ def now():
 
 def toDatetime(date_time: Union[str, float, dt.datetime, pdTimestamp]) -> dt.datetime:
     if isinstance(date_time, dt.datetime):
-        toreturn = date_time
+        return date_time
     elif isinstance(date_time, str):
-        toreturn = dateutil.parser.parse(date_time)
+        return dateutil.parser.parse(date_time)
     elif isinstance(date_time, int):
         # For Unix timestamps
-        toreturn = dt.datetime.fromtimestamp(date_time)
+        return dt.datetime.fromtimestamp(date_time)
     elif isinstance(date_time, pdTimestamp):
-        toreturn = date_time.to_pydatetime()
+        return date_time.to_pydatetime()
     else:
         raise Exception("Date time input has to be of types datetime, str, float or pandas Timestamp")
-    return toreturn
 
 
 def formatDatetime(date_time: Union[str, float, dt.datetime] = now(), format=STANDARD_FORMAT):

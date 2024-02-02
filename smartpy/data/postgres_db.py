@@ -1,4 +1,5 @@
 import json
+import os
 
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy.orm import sessionmaker
@@ -8,12 +9,13 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_t
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
 
 
-DB_RETRIES = 10
+DB_RETRIES = 0 if 'prod' not in os.environ['TINYLLM_CONFIG_PATH'] else 3
 WAIT_SEC = 2
 
 class PostgresDB:
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -33,6 +35,7 @@ class PostgresDB:
         )
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -51,6 +54,7 @@ class PostgresDB:
             session.close()
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -69,6 +73,7 @@ class PostgresDB:
             await session.close()
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -83,6 +88,7 @@ class PostgresDB:
                 return result
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -93,16 +99,26 @@ class PostgresDB:
             return result.fetchall()
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
     )
     def write(self, query, params={}):
+        # Make params into list and execute as list
+        if isinstance(params, dict):
+            params = [params]
+
+        if isinstance(query, str):
+            query = [query]
+
         with self.session_scope() as session:
-            result = session.execute(text(query), params)
+            for query, params in zip(query, params):
+                result = session.execute(text(query), params)
         return result
 
     @retry(
+        reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
@@ -112,7 +128,7 @@ class PostgresDB:
             result = await session.execute(text(query), params)
             return result
 
- 
+
     def insert(self, table_name, rows, on_conflict="do nothing"):
         if len(rows) == 0:
             return None, None

@@ -11,6 +11,10 @@ import psutil
 import smartpy.utility.os_util as os_util
 import venv
 
+from smartpy.utility.log_util import getLogger
+
+logger = getLogger(__name__)
+
 
 def installRequirements(env_path, requirements_file_path):
     if os_util.getOS() == 'Darwin':
@@ -119,3 +123,16 @@ def get_memory_usage():
     memory_usage_bytes = process.memory_info().rss
     memory_usage_mb = memory_usage_bytes / (1024 ** 2)
     return memory_usage_mb
+
+
+def timeit(f):
+
+    def timed(*args, **kw):
+
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+        logger.info(f"Function {f.__name__} took {round(te - ts,1)} seconds to execute")
+        return result
+
+    return timed
