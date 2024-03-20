@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: smartpy
+Version: 0.1
+Summary: Smartpy first release
+Home-page: 
+Author: Othmane Zoheir
+Author-email: othmane@rumorz.io
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: psutil

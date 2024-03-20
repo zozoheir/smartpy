@@ -1,7 +1,5 @@
 import os
-import sys
 import time
-import traceback
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -109,13 +107,6 @@ def keep_trying(exceptions, retries=3):
 
 
 
-def get_exception_info(e):
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    traceback_details = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    detailed_error_msg = f"Exception Type: {exc_type.__name__}\n" \
-                         f"Exception Message: {str(e)}\n" \
-                         f"Stack Trace: {''.join(traceback_details)}"
-    return detailed_error_msg
 
 
 def get_memory_usage():
@@ -136,3 +127,10 @@ def timeit(f):
         return result
 
     return timed
+
+def get_unique(list_of_vars):
+    unique_vars = []
+    for i in list_of_vars:
+        if i not in unique_vars:
+            unique_vars.append(i)
+    return unique_vars

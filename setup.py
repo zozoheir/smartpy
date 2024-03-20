@@ -6,7 +6,7 @@ setup(
     description='Smartpy first release',
     packages=find_packages(),
     author='Othmane Zoheir',
-    author_email='zozoheir@umich.edu',
+    author_email='othmane@rumorz.io',
     url='',
     install_requires=[
         'pandas',

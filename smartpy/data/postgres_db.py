@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
 
-
 DB_RETRIES = 0 if 'prod' not in os.environ['TINYLLM_CONFIG_PATH'] else 3
 WAIT_SEC = 2
+
 
 class PostgresDB:
 
@@ -93,10 +93,15 @@ class PostgresDB:
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
     )
-    async def async_read(self, query: str, params={}):
+    async def async_read(self, query: str, params={}, as_dict=False):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
-            return result.fetchall()
+            result = result.fetchall()
+            if as_dict:
+                result = [r._asdict() for r in result]
+                return result
+            else:
+                return result
 
     @retry(
         reraise=True,
@@ -128,11 +133,10 @@ class PostgresDB:
             result = await session.execute(text(query), params)
             return result
 
-
-    def insert(self, table_name, rows, on_conflict="do nothing"):
+    def insert(self, table_name, rows, on_conflict="do nothing", pk_col: str = 'pk_key'):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(table_name, rows, on_conflict)
+        query, params = self._get_upsert_query(table_name, rows, pk_col, on_conflict)
         return self.write(query, params)
 
     async def async_insert(self, table_name, rows, on_conflict="do nothing"):
@@ -142,7 +146,7 @@ class PostgresDB:
         result = await self.async_write(query, params)
         return result
 
-    def _get_upsert_query(self, table_name, rows, on_conflict="do nothing"):
+    def _get_upsert_query(self, table_name, rows, pk_key, on_conflict="do nothing"):
         # Extract columns from the first row
         columns = rows[0].keys()
 
@@ -168,7 +172,7 @@ class PostgresDB:
             query += " ON CONFLICT DO NOTHING"
         elif on_conflict == "update":
             update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col != 'primary_key_column'])
-            query += f" ON CONFLICT (primary_key_column) DO UPDATE SET {update_columns}"
+            query += f" ON CONFLICT ({pk_key}) DO UPDATE SET {update_columns}"
         elif on_conflict != "raise":
             raise ValueError("Invalid on_conflict option")
 

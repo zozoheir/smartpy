@@ -39,3 +39,19 @@ class Email:
             server.starttls()
             server.login(self.smtp_user, self.smtp_password)
             server.send_message(self.msg)
+
+
+"""
+# Send email
+    email = Email(smtp_server='smtp-relay.brevo.com',
+                  smtp_port=587,
+                  smtp_user='jo.webber.jo@gmail.com',
+                  smtp_password='sKD5dH2GN1Uk67R9')
+    email_list = []
+    email_list = ['zozoheir@umich.edu']
+    email.set_recipients(email_list)
+    email.set_subject(f'JET: Daily options report')
+    email.set_body('<h4>Your daily options report is attached</4>', is_html=True)
+    email.add_attachment(pdf_file_path)
+    email.send()
+"""
