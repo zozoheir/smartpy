@@ -3,7 +3,7 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 from botocore.client import Config
 
-from smartpy.aws.s3 import S3
+from smartpy.cloud.aws import S3
 
 aws_wrangler.tinyllm_config.botocore_config = Config(connect_timeout=50, read_timeout=500)
 

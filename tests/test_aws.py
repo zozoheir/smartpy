@@ -1,6 +1,6 @@
 import unittest
 
-from smartpy.aws import S3
+from smartpy.cloud.aws import S3
 
 
 class TestS3(unittest.TestCase):

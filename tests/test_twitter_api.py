@@ -1,6 +1,6 @@
 import unittest
 import smartpy.twitter.twitter_api as twitter
-from smartpy.aws import S3
+from smartpy.cloud.aws import S3
 
 s3 = S3()
 

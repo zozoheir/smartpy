@@ -2,7 +2,7 @@ import time
 
 import pandas as pd
 
-from smartpy.aws.s3 import S3
+from smartpy.cloud.aws import S3
 from smartpy.utility.aws_util import processResponse
 
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/protect-stack-resources.html

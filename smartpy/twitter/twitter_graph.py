@@ -125,7 +125,7 @@ async def query_twitter(username, password, email, email_pw, user_id):
 
 
 def get_tweet_attributes(tweet):
-    tweet = tweet.dict()
+    tweet = tweet.to_dict()
     tweet_attributes = {
         "date": tweet['date'],
         "replyCount": tweet['replyCount'],
