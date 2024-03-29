@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 
-class Throttle(object):
+class throttle(object):
     """
     Decorator that prevents a function from being called more than once every
     time period.

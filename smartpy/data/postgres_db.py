@@ -8,9 +8,13 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
 
+from smartpy.utility.log_util import getLogger
+from smartpy.utility.py_util import get_unique
+
 DB_RETRIES = 0 if 'prod' not in os.environ['TINYLLM_CONFIG_PATH'] else 3
 WAIT_SEC = 2
 
+logger = getLogger(__name__)
 
 class PostgresDB:
 
@@ -47,8 +51,9 @@ class PostgresDB:
         try:
             yield session
             session.commit()
-        except Exception:
+        except Exception as e:
             session.rollback()
+            logger.error(f"Error in session scope: {e}")
             raise
         finally:
             session.close()
@@ -118,8 +123,9 @@ class PostgresDB:
             query = [query]
 
         with self.session_scope() as session:
-            for query, params in zip(query, params):
-                result = session.execute(text(query), params)
+            for query_, param in zip(query, params):
+                result = session.execute(text(query_), param)
+
         return result
 
     @retry(
@@ -137,7 +143,8 @@ class PostgresDB:
         if len(rows) == 0:
             return None, None
         query, params = self._get_upsert_query(table_name, rows, pk_col, on_conflict)
-        return self.write(query, params)
+        cursor_result = self.write(query, params)
+        return cursor_result
 
     async def async_insert(self, table_name, rows, on_conflict="do nothing"):
         if len(rows) == 0:
