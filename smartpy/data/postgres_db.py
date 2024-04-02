@@ -185,3 +185,6 @@ class PostgresDB:
 
         params = {f'{col}{i}': row.get(col, None) for i, row in enumerate(rows) for col in columns}
         return query, params
+
+    def format_uuid_list(self, uuid_list):
+        return ','.join([f"'{id}'::uuid" for id in uuid_list])
