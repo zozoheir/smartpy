@@ -139,10 +139,10 @@ class PostgresDB:
             result = await session.execute(text(query), params)
             return result
 
-    def insert(self, table_name, rows, on_conflict="do nothing", pk_col: str = 'pk_key'):
+    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing"):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(table_name, rows, pk_col, on_conflict)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict)
         cursor_result = self.write(query, params)
         return cursor_result
 

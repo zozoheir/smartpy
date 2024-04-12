@@ -134,3 +134,15 @@ def get_unique(list_of_vars):
         if i not in unique_vars:
             unique_vars.append(i)
     return unique_vars
+
+
+def stringify_values_recursively(d):
+    for key, value in d.items():
+        if isinstance(value, dict):
+            d[key] = stringify_values_recursively(value)
+        elif isinstance(value, list):
+            if type(value[0]) == dict:
+                d[key] = [stringify_values_recursively(v) for v in value]
+        else:
+            d[key] = str(value)
+    return d
