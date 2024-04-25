@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 
 from contextlib import contextmanager, asynccontextmanager
 from sqlalchemy.orm import sessionmaker
@@ -15,6 +16,7 @@ DB_RETRIES = 0 if 'prod' not in os.environ['TINYLLM_CONFIG_PATH'] else 3
 WAIT_SEC = 2
 
 logger = getLogger(__name__)
+
 
 class PostgresDB:
 
@@ -139,10 +141,10 @@ class PostgresDB:
             result = await session.execute(text(query), params)
             return result
 
-    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing"):
+    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols)
         cursor_result = self.write(query, params)
         return cursor_result
 
@@ -153,9 +155,18 @@ class PostgresDB:
         result = await self.async_write(query, params)
         return result
 
-    def _get_upsert_query(self, table_name, rows, pk_key, on_conflict="do nothing"):
+    def _get_upsert_query(self,
+                          table_name,
+                          rows,
+                          pk_key,
+                          on_conflict="do nothing",
+                          uuid_cols=[]):
+        # Check that rows is not empty
+        if not rows:
+            raise ValueError("The 'rows' list cannot be empty")
+
         # Extract columns from the first row
-        columns = rows[0].keys()
+        columns = list(rows[0].keys())
 
         # Handle JSON serialization for dictionary values
         for row in rows:
@@ -163,27 +174,40 @@ class PostgresDB:
                 if isinstance(value, dict):
                     row[key] = json.dumps(value)
 
-        # Construct unique placeholders for parameterized query
-        unique_placeholders = [
-            '(' + ', '.join([f':{col}{i}' for col in columns]) + ')'
-            for i, _ in enumerate(rows)
-        ]
-        values_placeholders = ', '.join(unique_placeholders)
+        # Create parameterized placeholders and parameters dictionary
+        values_placeholders = []
+        params = {}
+        for i, row in enumerate(rows):
+            placeholder = []
+            for col in columns:
+                param_key = f"{col}{i}"
+                placeholder.append(f":{param_key}")
+                if col in uuid_cols and row.get(col, None) is not None:
+                    params[param_key] = uuid.UUID(row[col][0])
+                else:
+                    params[param_key] = row.get(col, None)
 
-        # Base query
+            values_placeholders.append(f"({', '.join(placeholder)})")
+
+        values_placeholders_str = ', '.join(values_placeholders)
+
+        # Construct base SQL query using parameterized placeholders
         query = f"""
-            INSERT INTO {table_name} ({', '.join(columns)}) 
-            VALUES {values_placeholders}
+            INSERT INTO {table_name} ({', '.join(columns)})
+            VALUES {values_placeholders_str}
         """
+
+        # Handling ON CONFLICT scenarios
         if on_conflict == "do nothing":
             query += " ON CONFLICT DO NOTHING"
         elif on_conflict == "update":
-            update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col != 'primary_key_column'])
+            update_columns = ', '.join([
+                f"{col} = EXCLUDED.{col}" for col in columns if col != pk_key
+            ])
             query += f" ON CONFLICT ({pk_key}) DO UPDATE SET {update_columns}"
         elif on_conflict != "raise":
             raise ValueError("Invalid on_conflict option")
 
-        params = {f'{col}{i}': row.get(col, None) for i, row in enumerate(rows) for col in columns}
         return query, params
 
     def format_uuid_list(self, uuid_list):

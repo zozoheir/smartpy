@@ -3,6 +3,7 @@ import pandas as pd
 from typing import Union
 import datetime as dt
 
+
 def addRangeBreaks(series, range_lookback):
     """
     Another measure of mean reversion: % of time timeseries broke its range
@@ -26,6 +27,7 @@ def addZscore(df, column, lookbacks: Union[str, list]):
             df[f'{column}_zscore_{i}'] = (df[column] - df[column].rolling(i).mean()) / df[column].rolling(
                 i).std()
     return df
+
 
 
 def addMADifferences(df, column, lookbacks: list):
