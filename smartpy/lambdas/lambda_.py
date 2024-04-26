@@ -3,21 +3,56 @@ import re
 import urllib
 from abc import abstractmethod
 
+from sqlalchemy import String, Column
+from sqlalchemy.orm import declarative_base
+
+from smartpy.data.postgres_db import PostgresDB
+
 
 def camel_to_snake(name):
     return '_'.join(re.sub('([A-Z][a-z]+)', r' \1', name).split()).lower()
+
+
+Base = declarative_base()
+
+class Config(Base):
+    __tablename__ = 'configs'
+    __table_args__ = {'schema': 'configs'}
+
+    namespace = Column(String)
+    type = Column(String)
+    key = Column(String, primary_key=True, nullable=False)
+    value = Column(String)
 
 
 class Lambda:
 
     def __init__(self,
                  redis_client,
+                 postgres_db: PostgresDB,
                  namespace='',
                  expiry_seconds=60):
         self.redis_client = redis_client
+        self.postgres_db = postgres_db
         self.namespace = 'lambdas:' + namespace
         self.key = camel_to_snake(self.__class__.__name__)
         self.expiry_seconds = expiry_seconds
+        self.init_database()
+
+    def init_database(self):
+        if self.redis_client.get(f"{self.namespace}:init:{self.key}"):
+            return
+
+        with self.postgres_db.engine.begin() as conn:
+            Base.metadata.create_all(conn)
+        self.postgres_db.insert(table_name='configs.configs',
+                                rows=[{
+                                    'namespace': 'lambdas',
+                                    'type': self.key,
+                                    'key': f'is_on_{self.key}',
+                                    'value': 'True'
+                                }])
+        self.redis_client.set(f"{self.namespace}:init:{self.key}", 'True')
 
     def get_redis_key(self,
                       **kwargs):
