@@ -10,9 +10,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_t
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
 
 from smartpy.utility.log_util import getLogger
-from smartpy.utility.py_util import get_unique
 
-DB_RETRIES = 0 if 'prod' not in os.environ['TINYLLM_CONFIG_PATH'] else 3
+DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH','') else 3
 WAIT_SEC = 2
 
 logger = getLogger(__name__)
@@ -85,14 +84,11 @@ class PostgresDB:
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
     )
-    def read(self, query, params={}, as_dict=False):
+    def read(self, query, params={}):
         with self.session_scope() as session:
             result = session.execute(text(query), params).fetchall()
-            if as_dict:
-                result = [r._asdict() for r in result]
-                return result
-            else:
-                return result
+            result = [r._asdict() for r in result]
+            return result
 
     @retry(
         reraise=True,
@@ -100,15 +96,12 @@ class PostgresDB:
         wait=wait_fixed(WAIT_SEC),
         retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
     )
-    async def async_read(self, query: str, params={}, as_dict=False):
+    async def async_read(self, query: str, params={}):
         async with self.async_session_scope() as session:
             result = await session.execute(text(query), params)
             result = result.fetchall()
-            if as_dict:
-                result = [r._asdict() for r in result]
-                return result
-            else:
-                return result
+            result = [r._asdict() for r in result]
+            return result
 
     @retry(
         reraise=True,
@@ -168,12 +161,6 @@ class PostgresDB:
         # Extract columns from the first row
         columns = list(rows[0].keys())
 
-        # Handle JSON serialization for dictionary values
-        for row in rows:
-            for key, value in row.items():
-                if isinstance(value, dict):
-                    row[key] = json.dumps(value)
-
         # Create parameterized placeholders and parameters dictionary
         values_placeholders = []
         params = {}
@@ -182,7 +169,10 @@ class PostgresDB:
             for col in columns:
                 param_key = f"{col}{i}"
                 placeholder.append(f":{param_key}")
-                if col in uuid_cols and row.get(col, None) is not None:
+                value = row.get(col, None)
+                if isinstance(value, dict):
+                    params[param_key] = json.dumps(value)
+                elif col in uuid_cols and row.get(col, None) is not None:
                     params[param_key] = uuid.UUID(row[col][0])
                 else:
                     params[param_key] = row.get(col, None)
