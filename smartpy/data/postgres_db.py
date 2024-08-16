@@ -7,8 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
-from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError
-
+from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError
 from smartpy.utility.log_util import getLogger
 
 DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH','') else 3
@@ -16,6 +15,7 @@ WAIT_SEC = 2
 
 logger = getLogger(__name__)
 
+exceptions = (OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError)
 
 class PostgresDB:
 
@@ -23,7 +23,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     def __init__(self, username, password, host, port, db_name, sslmode=None):
         self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}' + (
@@ -43,7 +43,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     @contextmanager
     def session_scope(self):
@@ -63,7 +63,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     @asynccontextmanager
     async def async_session_scope(self):
@@ -82,7 +82,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     def read(self, query, params={}):
         with self.session_scope() as session:
@@ -94,7 +94,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     async def async_read(self, query: str, params={}):
         async with self.async_session_scope() as session:
@@ -107,7 +107,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     def write(self, query, params={}):
         # Make params into list and execute as list
@@ -127,7 +127,7 @@ class PostgresDB:
         reraise=True,
         stop=stop_after_attempt(DB_RETRIES),
         wait=wait_fixed(WAIT_SEC),
-        retry=retry_if_exception_type((OperationalError, TimeoutError, DisconnectionError, DatabaseError))
+        retry=retry_if_exception_type(exceptions)
     )
     async def async_write(self, query: str, params={}):
         async with self.async_session_scope() as session:
@@ -141,10 +141,10 @@ class PostgresDB:
         cursor_result = self.write(query, params)
         return cursor_result
 
-    async def async_insert(self, table_name, rows, on_conflict="do nothing"):
+    async def async_insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(table_name, rows, on_conflict)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols=uuid_cols)
         result = await self.async_write(query, params)
         return result
 
