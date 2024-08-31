@@ -1,7 +1,7 @@
 import ccxt
 import pandas as pd
 
-from smartpy.ccxt.helpers import CCXT_EXCEPTIONS
+from smartpy.ccxt.helpers import CCXT_EXCEPTIONS, processGateIOCCXTOrdersDF
 from smartpy.utility.log_util import getLogger
 from smartpy.utility.py_util import keep_trying
 import smartpy.utility.dt_util as dt_util
@@ -66,7 +66,7 @@ class CCXTAggregator:
         minute = 60 * msec
         now = exchange_object.milliseconds()
         data = []
-        while from_timestamp < now:
+        while from_timestamp <= now:
             ohlcvs = exchange_object.fetch_ohlcv(symbol, timeframe, from_timestamp)
             if len(ohlcvs) > 0:
                 from_timestamp = ohlcvs[-1][0] + minute * minutes_add[timeframe]
@@ -80,6 +80,7 @@ class CCXTAggregator:
         df = pd.DataFrame(data, columns=CCXT_OHLC_HEADERS)
         df['timestamp'] = pd.to_datetime(df.timestamp, unit='ms')
         df['coin'] = symbol.split('/')[0]
+        df = df[(df['timestamp'] >= start_time) & (df['timestamp'] <= end_time)]
         return df
 
     @keep_trying(exceptions=CCXT_EXCEPTIONS)

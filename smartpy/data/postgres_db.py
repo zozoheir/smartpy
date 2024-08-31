@@ -10,12 +10,32 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_t
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError
 from smartpy.utility.log_util import getLogger
 
-DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH','') else 3
+DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH', '') else 3
 WAIT_SEC = 2
 
 logger = getLogger(__name__)
 
 exceptions = (OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError)
+
+
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.float32):
+            return float(obj)
+        elif isinstance(obj, np.float64):
+            return float(obj)
+        elif isinstance(obj, np.int32):
+            return int(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, UUID):
+            return str(obj)
+        return super(CustomEncoder, self).default(obj)
+
 
 class PostgresDB:
 
@@ -171,7 +191,7 @@ class PostgresDB:
                 placeholder.append(f":{param_key}")
                 value = row.get(col, None)
                 if isinstance(value, dict):
-                    params[param_key] = json.dumps(value)
+                    params[param_key] = json.dumps(value, cls=CustomEncoder)
                 elif col in uuid_cols and row.get(col, None) is not None:
                     params[param_key] = uuid.UUID(row[col][0])
                 else:
