@@ -3,6 +3,11 @@ import os
 import uuid
 
 from contextlib import contextmanager, asynccontextmanager
+from datetime import datetime
+from decimal import Decimal
+
+import numpy as np
+import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -30,9 +35,11 @@ class CustomEncoder(json.JSONEncoder):
             return int(obj)
         elif isinstance(obj, datetime):
             return obj.isoformat()
+        elif isinstance(obj, pd.Timestamp):
+            return obj.isoformat()
         elif isinstance(obj, Decimal):
             return float(obj)
-        elif isinstance(obj, UUID):
+        elif isinstance(obj, uuid.UUID):
             return str(obj)
         return super(CustomEncoder, self).default(obj)
 
