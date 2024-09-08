@@ -1,5 +1,6 @@
 import ccxt
 import pandas as pd
+from ccxt import BadSymbol, ExchangeNotAvailable
 
 from smartpy.ccxt.helpers import CCXT_EXCEPTIONS, processGateIOCCXTOrdersDF
 from smartpy.utility.log_util import getLogger
@@ -241,3 +242,4 @@ class CCXTAggregator:
             params=params)
 
         return entry_order
+
