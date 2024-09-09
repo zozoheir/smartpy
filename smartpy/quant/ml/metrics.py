@@ -1,7 +1,7 @@
 import numpy as np
 import sklearn.metrics as metrics
 
-def getRegressionMetrics(y_true, y_pred):
+def get_regression_metrics(y_true, y_pred):
     """Returns a dictionary of standard regression metrics"""
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
@@ -21,6 +21,7 @@ def getRegressionMetrics(y_true, y_pred):
         "mae": metrics.mean_absolute_error(y_true=y_true, y_pred=y_pred),
         "beta": beta,
         "r2_scaled": metrics.r2_score(y_true, y_pred * beta),
+        'corr': np.corrcoef(y_true, y_pred)[0, 1],
     }
     y_pred_class = np.where(y_pred > 0, 1, 0)
     y_true_class = np.where(y_true > 0, 1, 0)
