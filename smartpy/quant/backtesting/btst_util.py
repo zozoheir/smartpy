@@ -48,7 +48,7 @@ def getMLStrategyReturns(trading_data, target_column):
     return df
 
 
-def bootstrap_samples(start_date, end_date, num_samples=100, pct_samples=None):
+def generate_bootstraped_timeseries(start_date, end_date, num_samples=100, pct_samples=None):
     n_days = int(pct_samples * len(pd.date_range(start_date, end_date)))
     max_start_date = pd.to_datetime(end_date) - pd.Timedelta(days=n_days - 1)
     start_dates = pd.to_datetime(np.random.choice(pd.date_range(start_date, max_start_date), size=num_samples))
