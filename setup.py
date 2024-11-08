@@ -9,9 +9,9 @@ setup(
     author_email='othmane@rumorz.io',
     url='',
     install_requires=[
-        #'pandas',
+        'pandas',
         #'matplotlib',
-        #'numpy',
-        #'psutil'
+        'numpy',
+        'psutil'
     ]
 )
