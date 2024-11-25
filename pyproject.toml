@@ -1,10 +1,10 @@
 [project]
-name = "rumorz"
-version = "0.1.15"
+name = "smartpy"
+version = "0.0.1"
 authors = [
     { name = "Othmane Zoheir", email = "othmane@rumorz.io" },
 ]
-description = "Rumorz.io official Python SDK"
+description = "Python utility knife"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -20,5 +20,5 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/rumorz-ai/rumorz-sdk"
-Issues = "https://github.com/rumorz-ai/rumorz-sdk/issues"
+Homepage = "https://github.com/zozoheir/smartpy"
+Issues = "https://github.com/zozoheir/smartpy/issues"
