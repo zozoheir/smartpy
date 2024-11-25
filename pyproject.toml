@@ -2,7 +2,7 @@
 name = "rumorz"
 version = "0.1.14"
 authors = [
-  { name="Othmane Zoheir", email="othmane@rumorz.io" },
+    { name = "Othmane Zoheir", email = "othmane@rumorz.io" },
 ]
 description = "Rumorz.io official Python SDK"
 readme = "README.md"
@@ -14,8 +14,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "requests",
-    "smartpy @ git+https://github.com/zozoheir/smartpy.git@releases"
+    'pandas',
+    'numpy',
+    'psutil'
 ]
 
 [project.urls]
