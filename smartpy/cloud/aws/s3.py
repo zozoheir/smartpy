@@ -27,7 +27,6 @@ class S3:
     # Pulling
     def downloadFile(self, bucket, key, save_to_path):
         if self.isFile(bucket, key):
-            print(f'Downloading to {save_to_path}')
             self.boto3_resource.Bucket(bucket).download_file(key, save_to_path)
         else:
             raise Exception(f"The key {key} doesn't exist")

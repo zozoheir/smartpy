@@ -11,17 +11,6 @@ USERTIMELINE_ENDPOINT_URL = 'https://api.twitter.com/1.1/statuses/user_timeline.
 TWITTER_SEARCH_NON_NATIVE_FIELDS = ['count']
 
 
-TWITTER_API_KEYS = {
-    "email_address": "zozoheir.trading@gmail.com",
-    "username": "TradingBothmane",
-    "consumer_key": "28R3Kp8rlqNvTEvH837cKtLo4",
-    "consumer_secret": "Ha1R1Jl5T7P8TVQFXixmel02q9zmdmvK5rpAh5utqnK51FT44f",
-    "access_token_key": "1360664710664847363-7KnKk45zPbGJL5sYwzbfZP4zTeZMDa",
-    "access_token_secret": "b37uluUYwzDY0HbUFzpez0spEsMxfwBJHZ9LJK1pr4toK"
-}
-
-
-
 class Twitter:
 
     def __init__(self):

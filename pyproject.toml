@@ -1,0 +1,23 @@
+[project]
+name = "rumorz"
+version = "0.1.13"
+authors = [
+  { name="Othmane Zoheir", email="othmane@rumorz.io" },
+]
+description = "Rumorz.io official Python SDK"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "requests",
+    "smartpy @ git+https://github.com/zozoheir/smartpy.git@releases"
+]
+
+[project.urls]
+Homepage = "https://github.com/rumorz-ai/rumorz-sdk"
+Issues = "https://github.com/rumorz-ai/rumorz-sdk/issues"

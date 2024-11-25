@@ -1,10 +1,14 @@
+import csv
 import os
 import time
+import zipfile
 from datetime import datetime, timedelta
 from functools import wraps
+from io import BytesIO, TextIOWrapper
 
 import pandas as pd
 import psutil
+import requests
 
 import smartpy.utility.os_util as os_util
 import venv
@@ -117,3 +121,33 @@ def stringify_values_recursively(d):
         else:
             d[key] = str(value)
     return d
+
+
+
+def unzip_file(zip_path, extract_to):
+    if not os.path.exists(extract_to):
+        os.makedirs(extract_to)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+
+
+def download_zip(zip_url):
+    response = requests.get(zip_url)
+    response.raise_for_status()
+    zip_file = BytesIO(response.content)
+    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        csv_filename = zip_ref.namelist()[0]
+        with zip_ref.open(csv_filename) as csv_file:
+            csv_reader = csv.reader(TextIOWrapper(csv_file, 'utf-8'))
+            df = pd.DataFrame([row for row in csv_reader])
+            df.columns = df.iloc[0]
+            df = df[1:]
+            return df
+
+
+def add_row_to_file(file_path,
+                    row: list):
+    fifo_fd = os.open(file_path, os.O_WRONLY | os.O_NONBLOCK)
+    with os.fdopen(fifo_fd, 'w', newline='') as fifo:
+        writer = csv.writer(fifo)
+        writer.writerow(row)

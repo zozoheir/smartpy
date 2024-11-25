@@ -140,7 +140,7 @@ def get_tweet_attributes(tweet):
 
 def get_user_stats(user):
     stats = {
-        'id': user.internal_dex_id,
+        'id': user.internal_id,
         'url': user.url,
         'username': user.username,
         'display_name': user.displayname,
