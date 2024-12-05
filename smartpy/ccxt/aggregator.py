@@ -1,6 +1,7 @@
 import ccxt
 import pandas as pd
 from ccxt import BadSymbol, ExchangeNotAvailable
+import ccxt.async_support as async_ccxt
 
 from smartpy.ccxt.helpers import CCXT_EXCEPTIONS, processGateIOCCXTOrdersDF
 from smartpy.utility.log_util import getLogger
@@ -36,9 +37,9 @@ class CCXTAggregator:
 
         # Initilizing various objects
         for exchange in self.exchange_list:
-            exchange_class = getattr(ccxt, exchange)
+            exchange_class = getattr(async_ccxt, exchange)
             self.ccxt_exchange_objects[exchange] = exchange_class(config[exchange])
-            self.exchange_markets[exchange] = self.ccxt_exchange_objects[exchange].load_markets()
+            #self.exchange_markets[exchange] = self.ccxt_exchange_objects[exchange].load_markets()
 
     @keep_trying(exceptions=CCXT_EXCEPTIONS)
     def getAvailableSymbols(self,
@@ -47,7 +48,7 @@ class CCXTAggregator:
         return [i for i in self.exchange_markets[exchange].keys() if i.endswith(quoted)]
 
     @keep_trying(exceptions=CCXT_EXCEPTIONS)
-    def get_ohlc(self,
+    async def get_ohlc(self,
                  exchange,
                  symbol,
                  timeframe,
@@ -68,7 +69,7 @@ class CCXTAggregator:
         now = exchange_object.milliseconds()
         data = []
         while from_timestamp <= now:
-            ohlcvs = exchange_object.fetch_ohlcv(symbol, timeframe, from_timestamp)
+            ohlcvs = await exchange_object.fetch_ohlcv(symbol, timeframe, from_timestamp)
             if len(ohlcvs) > 0:
                 from_timestamp = ohlcvs[-1][0] + minute * minutes_add[timeframe]
                 data += ohlcvs
@@ -77,6 +78,8 @@ class CCXTAggregator:
                     break
             else:
                 from_timestamp += 1000 * 3600 * 24 * 7
+
+        await exchange_object.close()
 
         df = pd.DataFrame(data, columns=CCXT_OHLC_HEADERS)
         df['timestamp'] = pd.to_datetime(df.timestamp, unit='ms')

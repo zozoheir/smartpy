@@ -32,6 +32,7 @@ def ensureDir(dir_path):
         os.makedirs(dir_path)
 
 
+
 def joinPaths(paths: list):
     # Remove '/' at the beginning of all paths
     paths = [path[1:] if path.startswith('/') and i != 0 else path for i, path in enumerate(paths)]

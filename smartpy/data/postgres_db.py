@@ -161,22 +161,22 @@ class PostgresDB:
             result = await session.execute(text(query), params)
             return result
 
-    def insert(self, data_table, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
+    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(data_table, rows, pk_key, on_conflict, uuid_cols)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols)
         cursor_result = self.write(query, params)
         return cursor_result
 
-    async def async_insert(self, data_table, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
+    async def async_insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[]):
         if len(rows) == 0:
             return None, None
-        query, params = self._get_upsert_query(data_table, rows, pk_key, on_conflict, uuid_cols=uuid_cols)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols=uuid_cols)
         result = await self.async_write(query, params)
         return result
 
     def _get_upsert_query(self,
-                          data_table,
+                          table_name,
                           rows,
                           pk_key,
                           on_conflict="do nothing",
@@ -210,7 +210,7 @@ class PostgresDB:
 
         # Construct base SQL query using parameterized placeholders
         query = f"""
-            INSERT INTO {data_table} ({', '.join(columns)})
+            INSERT INTO {table_name} ({', '.join(columns)})
             VALUES {values_placeholders_str}
         """
 
