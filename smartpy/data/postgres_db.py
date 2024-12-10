@@ -1,18 +1,18 @@
 import json
 import os
 import uuid
-
 from contextlib import contextmanager, asynccontextmanager
 from datetime import datetime
 from decimal import Decimal
 
 import numpy as np
 import pandas as pd
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from sqlalchemy import create_engine, text, select
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+
 from smartpy.utility.log_util import getLogger
 
 DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH', '') else 3
@@ -53,10 +53,13 @@ class PostgresDB:
         retry=retry_if_exception_type(exceptions)
     )
     def __init__(self, username, password, host, port, db_name, sslmode=None):
-        self.db_uri = f'postgresql://{username}:{password}@{host}:{port}/{db_name}' + (
+        # Sync client
+        self.db_uri = f'postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}' + (
             f'?sslmode={sslmode}' if sslmode else '')
         self.engine = create_engine(self.db_uri)
         self.sync_session_maker = sessionmaker(bind=self.engine)
+
+        # Async client
         async_db_uri = f'postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}' + (
             f'?sslmode={sslmode}' if sslmode else '')
         self.async_engine = create_async_engine(async_db_uri)
@@ -64,6 +67,7 @@ class PostgresDB:
             bind=self.async_engine,
             expire_on_commit=False,
             class_=AsyncSession,
+            sync_session_class=self.sync_session_maker
         )
 
     @retry(
@@ -149,6 +153,22 @@ class PostgresDB:
                 result = session.execute(text(query_), param)
 
         return result
+
+    @retry(
+        reraise=True,
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type(exceptions)
+    )
+    async def run_function(self, function_call):
+        async with self.async_session_scope() as session:
+            result = await session.execute(
+                select(function_call)
+            )
+            # result = await session.execute(text(query), params)
+            result = result.fetchall()
+            result = [r._asdict() for r in result]
+            return result
 
     @retry(
         reraise=True,
