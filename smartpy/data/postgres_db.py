@@ -223,7 +223,7 @@ class PostgresDB:
                     params[param_key] = uuid.UUID(row[col][0])
                 else:
                     params[param_key] = row.get(col, None)
-
+            params.keys()
             values_placeholders.append(f"({', '.join(placeholder)})")
 
         values_placeholders_str = ', '.join(values_placeholders)
