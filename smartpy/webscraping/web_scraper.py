@@ -12,7 +12,7 @@ class ChromiumPlaywrightContext:
     async def __aenter__(self,
                          screen_size=(1920, 1080)):
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=False)
+        self.browser = await self.playwright.chromium.launch(headless=True)
         self.context = await self.browser.new_context(user_agent=random.choice(browser_user_agents),
                                                       viewport={'width': screen_size[0], 'height': screen_size[1]})
         self.page = await self.context.new_page()
