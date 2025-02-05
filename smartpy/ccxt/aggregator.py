@@ -1,19 +1,34 @@
-import ccxt
-import pandas as pd
-from ccxt import BadSymbol, ExchangeNotAvailable
-import ccxt.async_support as async_ccxt
+import datetime as dt
+from socket import timeout
 
+import ccxt.async_support as async_ccxt
+import pandas as pd
+from ccxt import *
+from requests.exceptions import HTTPError
+from sqlalchemy.pool.impl import QueuePool
+from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
+from urllib3.exceptions import ProtocolError
+
+import smartpy.utility.dt_util as dt_util
 from smartpy.ccxt.helpers import CCXT_EXCEPTIONS, processGateIOCCXTOrdersDF
 from smartpy.utility.log_util import getLogger
 from smartpy.utility.py_util import keep_trying
-import smartpy.utility.dt_util as dt_util
-import datetime as dt
-
 
 logger = getLogger(__name__)
 
 MINIMAL_ORDER_COLUMNS = ['timestamp', 'coin', 'filled', 'side', 'price', 'status']
 CCXT_OHLC_HEADERS = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+exceptions = (QueuePool,
+              HTTPError,
+              TimeoutError,
+              timeout,
+              ConnectionResetError,
+              ProtocolError,
+              NetworkError,
+              ExchangeNotAvailable,
+              RequestTimeout,
+              ExchangeError,
+              AttributeError)
 
 minutes_add = {
     "1m": 1,
@@ -39,7 +54,7 @@ class CCXTAggregator:
         for exchange in self.exchange_list:
             exchange_class = getattr(async_ccxt, exchange)
             self.ccxt_exchange_objects[exchange] = exchange_class(config[exchange])
-            #self.exchange_markets[exchange] = self.ccxt_exchange_objects[exchange].load_markets()
+            # self.exchange_markets[exchange] = self.ccxt_exchange_objects[exchange].load_markets()
 
     @keep_trying(exceptions=CCXT_EXCEPTIONS)
     def getAvailableSymbols(self,
@@ -47,13 +62,17 @@ class CCXTAggregator:
                             quoted=''):
         return [i for i in self.exchange_markets[exchange].keys() if i.endswith(quoted)]
 
-    @keep_trying(exceptions=CCXT_EXCEPTIONS)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_random_exponential(min=3, max=3),
+        retry=retry_if_exception_type(exceptions)
+    )
     async def get_ohlc(self,
-                 exchange,
-                 symbol,
-                 timeframe,
-                 start_time,
-                 end_time=str(dt.datetime.now())):
+                       exchange,
+                       symbol,
+                       timeframe,
+                       start_time,
+                       end_time=str(dt.datetime.now())):
 
         # standardize to dateitme
         start_time = dt_util.toDatetime(start_time)
@@ -69,17 +88,20 @@ class CCXTAggregator:
         now = exchange_object.milliseconds()
         data = []
         while from_timestamp <= now:
-            ohlcvs = await exchange_object.fetch_ohlcv(symbol, timeframe, from_timestamp)
-            if len(ohlcvs) > 0:
-                from_timestamp = ohlcvs[-1][0] + minute * minutes_add[timeframe]
-                data += ohlcvs
-                # Stop when you get to end time + 1 day
-                if from_timestamp > exchange_object.parse8601(str(end_time)) + 1000 * 3600 * 24:
-                    break
-            else:
-                from_timestamp += 1000 * 3600 * 24 * 7
-
-        await exchange_object.close()
+            try:
+                ohlcvs = await exchange_object.fetch_ohlcv(symbol, timeframe, from_timestamp)
+                if len(ohlcvs) > 0:
+                    from_timestamp = ohlcvs[-1][0] + minute * minutes_add[timeframe]
+                    data += ohlcvs
+                    # Stop when you get to end time + 1 day
+                    if from_timestamp > exchange_object.parse8601(str(end_time)) + 1000 * 3600 * 24:
+                        break
+                else:
+                    from_timestamp += 1000 * 3600 * 24 * 7
+            except Exception as e:
+                raise e
+            finally:
+                await exchange_object.close()
 
         df = pd.DataFrame(data, columns=CCXT_OHLC_HEADERS)
         df['timestamp'] = pd.to_datetime(df.timestamp, unit='ms')
@@ -168,7 +190,7 @@ class CCXTAggregator:
             else:
                 break
         closed_orders_df = pd.DataFrame(all_closed_orders)
-        if len(closed_orders_df)>0:
+        if len(closed_orders_df) > 0:
             return processGateIOCCXTOrdersDF(closed_orders_df)
         else:
             closed_orders_df
@@ -245,4 +267,3 @@ class CCXTAggregator:
             params=params)
 
         return entry_order
-

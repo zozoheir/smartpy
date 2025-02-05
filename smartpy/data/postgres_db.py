@@ -15,7 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_t
 
 from smartpy.utility.log_util import getLogger
 
-DB_RETRIES = 0 if 'prod' not in os.environ.get('TINYLLM_CONFIG_PATH', '') else 3
+DB_RETRIES = 3
 WAIT_SEC = 2
 
 logger = getLogger(__name__)
@@ -69,6 +69,15 @@ class PostgresDB:
             class_=AsyncSession,
             sync_session_class=self.sync_session_maker
         )
+
+    @retry(
+        reraise=True,
+        stop=stop_after_attempt(DB_RETRIES),
+        wait=wait_fixed(WAIT_SEC),
+        retry=retry_if_exception_type(exceptions)
+    )
+    def connect(self):
+        self.engine.connect()
 
     @retry(
         reraise=True,

@@ -3,8 +3,9 @@ import time
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-from rumorz_data.scraping.helpers import remove_html_tags
-from rumorz_data.scraping.util.user_agents import browser_user_agents
+
+from sortino_util.clients.scraping.helpers import remove_html_tags
+from sortino_util.clients.scraping.util.user_agents import browser_user_agents
 
 
 class ChromiumPlaywrightContext:
@@ -22,19 +23,27 @@ class ChromiumPlaywrightContext:
         await self.browser.close()
         await self.playwright.stop()
 
-    async def get_url_content(self,
+    async def get_source_code(self,
                               url,
                               wait_for_body=True,
                               wait_for_text=None,
                               timeout=30000):
         await self.page.goto(url)
         if wait_for_text:
-            await self.page.wait_for_function(f"document.body.innerText.includes('{wait_for_text}')", timeout=timeout)
+            await self.page.wait_for_function(f"document.body.innerText.includes('{wait_for_text}')",timeout=timeout)
         elif wait_for_body:
             await self.page.wait_for_selector("body")
             await asyncio.sleep(2)
+        return await self.page.content()
 
-        source_code = await self.page.content()
+
+
+    async def get_url_content(self,
+                              url,
+                              wait_for_body=True,
+                              wait_for_text=None,
+                              timeout=30000):
+        source_code = await self.get_source_code(url, wait_for_body, wait_for_text,timeout)
         content = trafilatura.extract(source_code, include_comments=False)
         if content:
             content = remove_html_tags(content)
@@ -78,3 +87,5 @@ def extract_urls_from_source_code(source_code):
         if href and urlparse(href).scheme:
             links.append(href)
     return links
+
+
