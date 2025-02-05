@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, text, select
 from sqlalchemy.exc import OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError
+from psycopg2 import OperationalError as Psycopg2OperationalError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
@@ -20,7 +21,7 @@ WAIT_SEC = 2
 
 logger = getLogger(__name__)
 
-exceptions = (OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError)
+exceptions = (OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError, Psycopg2OperationalError)
 
 
 class CustomEncoder(json.JSONEncoder):
