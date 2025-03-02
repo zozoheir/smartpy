@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import uuid
 from contextlib import contextmanager, asynccontextmanager
 from datetime import datetime
@@ -21,7 +22,7 @@ WAIT_SEC = 2
 
 logger = getLogger(__name__)
 
-exceptions = (OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError, Psycopg2OperationalError)
+exceptions = (socket.gaierror, OperationalError, TimeoutError, DisconnectionError, DatabaseError, DBAPIError, Psycopg2OperationalError)
 
 
 class CustomEncoder(json.JSONEncoder):
