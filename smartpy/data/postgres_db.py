@@ -157,10 +157,10 @@ class PostgresDB:
             result = session.execute(text(q), p)
         return result
 
-    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[], session=None):
+    def insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[], session=None,on_conflict_cols=[]):
         if not rows:
             return None
-        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols)
+        query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols, on_conflict_cols=on_conflict_cols)
         return self.write(query, params, session=session)
 
     async def async_insert(self, table_name, rows, pk_key='id', on_conflict="do nothing", uuid_cols=[], session=None):
@@ -169,7 +169,7 @@ class PostgresDB:
         query, params = self._get_upsert_query(table_name, rows, pk_key, on_conflict, uuid_cols)
         return await self.async_write(query, params, session=session)
 
-    def _get_upsert_query(self, table_name, rows, pk_key, on_conflict="do nothing", uuid_cols=[]):
+    def _get_upsert_query(self, table_name, rows, pk_key, on_conflict="do nothing", uuid_cols=[], on_conflict_cols=[]):
         if not rows:
             raise ValueError("The 'rows' list cannot be empty")
 
@@ -201,12 +201,15 @@ class PostgresDB:
         if on_conflict == "do nothing":
             query += " ON CONFLICT DO NOTHING"
         elif on_conflict == "update":
-            update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col != pk_key])
-            query += f" ON CONFLICT ({pk_key}) DO UPDATE SET {update_columns}"
+            conflict_target = ', '.join(on_conflict_cols) if on_conflict_cols else pk_key
+            update_columns = ', '.join(
+                [f"{col} = EXCLUDED.{col}" for col in columns if col not in on_conflict_cols and col != pk_key])
+            query += f" ON CONFLICT ({conflict_target}) DO UPDATE SET {update_columns}"
         elif on_conflict != "raise":
             raise ValueError("Invalid on_conflict option")
 
         return query, params
+
 
     def format_uuid_list(self, uuid_list):
         return ','.join([f"'{id}'::uuid" for id in uuid_list])
